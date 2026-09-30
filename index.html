@@ -1,0 +1,4269 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Linux Universe — Interactive Cosmic Journey</title>
+    <meta name="description" content="An award-winning interactive cinematic journey through over 120 Linux distributions across six cosmic families with kinetic typography, star constellation map, and the Distro Oracle." />
+    <meta property="og:title" content="The Linux Universe — Interactive Cosmic Journey" />
+    <meta property="og:description" content="An award-winning interactive journey through over 120 Linux distributions across six cosmic families." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <!-- GSAP via cdnjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <style>
+      :root {
+        --bg-void: #030508;
+        --bg-deep: #070a12;
+        --color-text-main: #f8fafc;
+        --color-text-muted: #8492a6;
+        --color-cyan: #00f0ff;
+        --color-magenta: #f43f5e;
+        --color-violet: #8b5cf6;
+        --color-lime: #10b981;
+        --color-amber: #f59e0b;
+        --color-debian: #d70a53;
+        --color-redhat: #ee0000;
+        --color-arch: #1793d1;
+        --color-suse: #73ba25;
+        --color-indep: #8b5cf6;
+        --color-special: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      html, body {
+        background-color: var(--bg-void);
+        color: var(--color-text-main);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+        selection-background-color: rgba(0, 240, 255, 0.3);
+      }
+
+      ::selection {
+        background: rgba(0, 240, 255, 0.35);
+        color: #ffffff;
+      }
+
+      .font-display {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+
+      .font-hero {
+        font-family: 'Syne', sans-serif;
+      }
+
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* Noise & Atmosphere */
+      #grain-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0.038;
+      }
+
+      #star-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background: radial-gradient(circle at center, transparent 40%, rgba(2, 4, 8, 0.75) 100%);
+      }
+
+      /* Dynamic Nebula Glow */
+      #nebula-glow {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.45;
+        transition: background 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        background: radial-gradient(circle at 50% 40%, rgba(23, 147, 209, 0.12) 0%, transparent 70%);
+      }
+
+      /* Custom Cursor */
+      #cursor-dot, #cursor-ring {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.3s ease;
+      }
+
+      #cursor-dot {
+        width: 6px;
+        height: 6px;
+        background: #00f0ff;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #00f0ff;
+      }
+
+      #cursor-ring {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(0, 240, 255, 0.5);
+        border-radius: 50%;
+        transition: width 0.25s ease, height 0.25s ease, border-color 0.25s ease, transform 0.08s linear;
+      }
+
+      body.cursor-hover #cursor-ring {
+        width: 64px;
+        height: 64px;
+        border-color: #f43f5e;
+        background: rgba(244, 63, 94, 0.08);
+      }
+
+      body.cursor-reticle #cursor-ring {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        border-color: #00f0ff;
+        transform: translate(-50%, -50%) rotate(45deg);
+      }
+
+      @media (pointer: coarse) {
+        #cursor-dot, #cursor-ring {
+          display: none !important;
+        }
+      }
+
+      /* Top Navigation Bar */
+      .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 64px;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        background: linear-gradient(to bottom, rgba(3, 5, 8, 0.85) 0%, rgba(3, 5, 8, 0) 100%);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .nav-brand {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .nav-brand-dot {
+        width: 8px;
+        height: 8px;
+        background: #00f0ff;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #00f0ff;
+        animation: pulse-dot 2.5s infinite;
+      }
+
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.7); }
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 1.75rem;
+        align-items: center;
+      }
+
+      .nav-link {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #8492a6;
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+
+      .nav-link:hover {
+        color: #00f0ff;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-btn {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        background: rgba(0, 240, 255, 0.05);
+        color: #00f0ff;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none;
+      }
+
+      .nav-btn:hover {
+        background: #00f0ff;
+        color: #030508;
+        box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      }
+
+      /* Bottom Cinematic HUD */
+      .bottom-hud {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 48px;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        background: linear-gradient(to top, rgba(3, 5, 8, 0.9) 0%, rgba(3, 5, 8, 0) 100%);
+        pointer-events: none;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+      }
+
+      .hud-left {
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .hud-sector-glow {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00f0ff;
+      }
+
+      .hud-counter {
+        color: #f8fafc;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      #progress-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 2px;
+        width: 0%;
+        background: linear-gradient(90deg, #00f0ff, #f43f5e, #8b5cf6, #10b981);
+        z-index: 501;
+        transition: width 0.1s linear;
+      }
+
+      /* Hero Section */
+      .hero-section {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 6rem 2rem 4rem;
+        z-index: 10;
+      }
+
+      .hero-kicker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #00f0ff;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .hero-title {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(3.5rem, 11vw, 11rem);
+        font-weight: 800;
+        line-height: 0.88;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin-bottom: 2rem;
+        perspective: 1000px;
+      }
+
+      .hero-title .char {
+        display: inline-block;
+        transform-origin: center center;
+        will-change: transform, opacity, filter;
+      }
+
+      .hero-subtitle {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        color: #94a3b8;
+        max-width: 640px;
+        letter-spacing: 0.05em;
+        margin-bottom: 3.5rem;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .scroll-indicator {
+        position: absolute;
+        bottom: 2.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #64748b;
+        cursor: pointer;
+      }
+
+      .scroll-indicator-line {
+        width: 1px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .scroll-indicator-line::after {
+        content: '';
+        position: absolute;
+        top: -100%;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, transparent, #00f0ff);
+        animation: scroll-flow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+      }
+
+      @keyframes scroll-flow {
+        0% { top: -100%; }
+        100% { top: 100%; }
+      }
+
+      /* Editorial Intro */
+      .intro-section {
+        position: relative;
+        min-height: 80vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8rem 2rem;
+        z-index: 10;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+      }
+
+      .intro-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(8rem, 24vw, 26rem);
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.015);
+        letter-spacing: 0.08em;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .intro-content {
+        max-width: 960px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .intro-quote {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(1.8rem, 3.8vw, 3.4rem);
+        line-height: 1.25;
+        font-weight: 500;
+        color: #f1f5f9;
+        margin-bottom: 3.5rem;
+      }
+
+      .intro-quote .word {
+        display: inline-block;
+        opacity: 0.2;
+        transition: opacity 0.4s ease, color 0.4s ease;
+      }
+
+      .intro-quote .word.active {
+        opacity: 1;
+        color: #ffffff;
+      }
+
+      .intro-pillars {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 3rem;
+      }
+
+      .pillar-item {
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .pillar-num {
+        font-size: 0.8rem;
+        color: #00f0ff;
+        margin-bottom: 0.5rem;
+      }
+
+      .pillar-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.2rem;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      .pillar-desc {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.5;
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* Family Sector Chapter Gates */
+      .chapter-gate {
+        position: relative;
+        min-height: 70vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 6rem 2rem;
+        z-index: 10;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+      }
+
+      .chapter-num {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(4rem, 12vw, 10rem);
+        font-weight: 800;
+        line-height: 1;
+        opacity: 0.25;
+        letter-spacing: -0.05em;
+        margin-bottom: -1rem;
+      }
+
+      .chapter-name {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.5rem, 6vw, 5.5rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+        margin-bottom: 1rem;
+      }
+
+      .chapter-kicker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+      }
+
+      .chapter-desc {
+        max-width: 600px;
+        font-size: 1rem;
+        color: #94a3b8;
+        line-height: 1.6;
+      }
+
+      /* Cinematic Distro Section */
+      .distro-section {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5rem 2rem;
+        z-index: 10;
+        overflow: hidden;
+      }
+
+      .distro-grid {
+        width: 100%;
+        max-width: 1280px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+
+      @media (max-width: 900px) {
+        .distro-grid {
+          grid-template-columns: 1fr;
+          gap: 2.5rem;
+          text-align: center;
+        }
+      }
+
+      .distro-visual {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .distro-emblem-wrap {
+        width: clamp(260px, 32vw, 420px);
+        height: clamp(260px, 32vw, 420px);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .distro-emblem-wrap:hover {
+        transform: scale(1.05) rotate(2deg);
+      }
+
+      .distro-halo {
+        position: absolute;
+        inset: -20px;
+        border-radius: 50%;
+        opacity: 0.35;
+        filter: blur(40px);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .distro-svg-container {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .distro-svg-container svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6));
+      }
+
+      .distro-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .distro-meta-top {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+      }
+
+      .distro-index {
+        color: #00f0ff;
+        font-weight: 600;
+      }
+
+      .distro-badge {
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.6rem;
+        border-radius: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .distro-name {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.4rem, 5vw, 4.5rem);
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+      }
+
+      .distro-tagline {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.05rem;
+        color: #38bdf8;
+        margin-bottom: 1.5rem;
+        font-weight: 400;
+      }
+
+      .distro-desc {
+        font-size: 1.05rem;
+        color: #cbd5e1;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        max-width: 580px;
+      }
+
+      .distro-specs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 1.5rem;
+        margin-bottom: 2rem;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      @media (max-width: 550px) {
+        .distro-specs {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .spec-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .spec-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 0.1em;
+      }
+
+      .spec-val {
+        font-size: 0.85rem;
+        color: #f1f5f9;
+        font-weight: 500;
+      }
+
+      .distro-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .btn-target {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .btn-target:hover {
+        background: rgba(0, 240, 255, 0.15);
+        border-color: #00f0ff;
+        color: #00f0ff;
+      }
+
+      /* Constellation Section */
+      #constellation-section {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 6rem 2rem;
+        z-index: 10;
+        background: radial-gradient(circle at center, #090e1a 0%, #030508 100%);
+      }
+
+      .constellation-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        max-width: 720px;
+      }
+
+      .constellation-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.2rem, 5vw, 4rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin-bottom: 0.75rem;
+      }
+
+      .constellation-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .filter-pill {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-pill:hover, .filter-pill.active {
+        color: #ffffff;
+        border-color: #00f0ff;
+        background: rgba(0, 240, 255, 0.15);
+      }
+
+      .constellation-canvas-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        height: 640px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        background: #040711;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+      }
+
+      #galaxy-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: crosshair;
+      }
+
+      #galaxy-tooltip {
+        position: absolute;
+        pointer-events: none;
+        padding: 0.85rem 1.15rem;
+        background: rgba(6, 11, 22, 0.92);
+        border: 1px solid #00f0ff;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        transform: translate(-50%, -120%);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        z-index: 100;
+        min-width: 180px;
+      }
+
+      /* Distro Oracle Wheel Section */
+      #oracle-section {
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 6rem 2rem;
+        z-index: 10;
+        background: radial-gradient(circle at center, #0d0718 0%, #030508 80%);
+      }
+
+      .oracle-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+
+      .oracle-kicker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #f43f5e;
+        margin-bottom: 0.75rem;
+      }
+
+      .oracle-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+      }
+
+      .oracle-subtitle {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        font-style: italic;
+      }
+
+      .wheel-container {
+        position: relative;
+        width: min(90vw, 680px);
+        height: min(90vw, 680px);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #wheel-canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 50%;
+        box-shadow: 0 0 80px rgba(244, 63, 94, 0.15);
+      }
+
+      .wheel-pointer {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 28px;
+        height: 38px;
+        z-index: 25;
+        transition: transform 0.08s ease;
+      }
+
+      .wheel-pointer svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 4px 10px rgba(0, 240, 255, 0.8));
+      }
+
+      .wheel-center-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #1e1b4b 0%, #030712 100%);
+        border: 2px solid #00f0ff;
+        color: #ffffff;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
+        box-shadow: 0 0 35px rgba(0, 240, 255, 0.4);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .wheel-center-btn:hover {
+        transform: translate(-50%, -50%) scale(1.08);
+        border-color: #f43f5e;
+        box-shadow: 0 0 50px rgba(244, 63, 94, 0.6);
+      }
+
+      .wheel-center-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: translate(-50%, -50%);
+      }
+
+      /* Modal Winning Reveal */
+      #oracle-result-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: rgba(3, 5, 8, 0.88);
+        backdrop-filter: blur(20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+      }
+
+      #oracle-result-modal.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-card {
+        background: #090e1a;
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 12px;
+        max-width: 680px;
+        width: 100%;
+        padding: 3rem;
+        position: relative;
+        text-align: center;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
+        transform: scale(0.9);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      #oracle-result-modal.open .modal-card {
+        transform: scale(1);
+      }
+
+      .modal-kicker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #00f0ff;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-emblem {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 1.5rem;
+      }
+
+      .modal-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+      }
+
+      .modal-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-desc {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #cbd5e1;
+        margin-bottom: 2rem;
+      }
+
+      .modal-how-to {
+        background: rgba(255, 255, 255, 0.03);
+        border-left: 3px solid #00f0ff;
+        padding: 1.25rem;
+        text-align: left;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 2rem;
+      }
+
+      .modal-how-title {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #00f0ff;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.1em;
+      }
+
+      .modal-how-text {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        line-height: 1.5;
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+
+      #confetti-canvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2050;
+      }
+
+      /* Discoveries History */
+      .history-section {
+        width: 100%;
+        max-width: 900px;
+        margin: 4rem auto 0;
+        padding-top: 3rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .history-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .history-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+
+      .history-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .history-card:hover {
+        border-color: #00f0ff;
+        background: rgba(0, 240, 255, 0.05);
+      }
+
+      .history-card-emblem {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      /* Floating Discovery Button */
+      #floating-discover-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 550;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(8, 14, 26, 0.88);
+        border: 1px solid #00f0ff;
+        color: #00f0ff;
+        padding: 0.75rem 1.4rem;
+        border-radius: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        box-shadow: 0 0 25px rgba(0, 240, 255, 0.3);
+        backdrop-filter: blur(12px);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      #floating-discover-btn:hover {
+        background: #00f0ff;
+        color: #030508;
+        box-shadow: 0 0 40px rgba(0, 240, 255, 0.6);
+        transform: translateY(-2px);
+      }
+
+      /* Final CTA & Footer */
+      .footer-section {
+        position: relative;
+        width: 100%;
+        padding: 8rem 2rem 5rem;
+        text-align: center;
+        z-index: 10;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .footer-cta {
+        font-family: 'Syne', sans-serif;
+        font-size: clamp(2rem, 6vw, 5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin-bottom: 2rem;
+      }
+
+      .footer-sub {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.25rem;
+        color: #94a3b8;
+        margin-bottom: 3.5rem;
+      }
+
+      .footer-line {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        color: #64748b;
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        #cursor-dot, #cursor-ring {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Ambience Canvases -->
+    <div id="nebula-glow"></div>
+    <canvas id="star-canvas"></canvas>
+    <canvas id="grain-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <a href="#hero" class="nav-brand" id="brand-link">
+        <span class="nav-brand-dot"></span>
+        <span>The Linux Universe</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#sector-debian" class="nav-link">Debian</a>
+        <a href="#sector-redhat" class="nav-link">Red Hat</a>
+        <a href="#sector-arch" class="nav-link">Arch</a>
+        <a href="#sector-suse" class="nav-link">SUSE</a>
+        <a href="#sector-independent" class="nav-link">Independent</a>
+        <a href="#sector-special" class="nav-link">Special</a>
+        <a href="#constellation-section" class="nav-link" style="color: #00f0ff;">Galaxy Map</a>
+        <a href="#oracle-section" class="nav-link" style="color: #f43f5e;">Distro Oracle</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button id="audio-toggle" class="nav-btn" aria-label="Toggle Audio Synthesis">AUDIO: OFF</button>
+      </div>
+    </header>
+
+    <!-- Bottom HUD -->
+    <div class="bottom-hud">
+      <div class="hud-left">
+        <span class="hud-sector-glow" id="hud-glow"></span>
+        <span id="hud-sector-name">SECTOR 01 // DEBIAN FAMILY</span>
+      </div>
+      <div class="hud-counter" id="hud-counter">001 / 128</div>
+    </div>
+    <div id="progress-bar"></div>
+
+    <!-- Floating Discover Button -->
+    <button id="floating-discover-btn" aria-label="Random Distro Discovery">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M16.2 7.8l-2 6.3-6.4 2 2-6.3z"/></svg>
+      <span>Discover Distro</span>
+    </button>
+
+    <!-- MAIN WRAPPER -->
+    <main>
+      <!-- Hero -->
+      <section class="hero-section" id="hero">
+        <div class="hero-kicker">Interactive Cosmic Cartography</div>
+        <h1 class="hero-title" id="hero-title">
+          <span class="line-1">THE LINUX</span><br>
+          <span class="line-2">UNIVERSE</span>
+        </h1>
+        <p class="hero-subtitle font-mono" style="letter-spacing: 0.18em; font-size: clamp(0.85rem, 1.4vw, 1.15rem); text-transform: uppercase; color: #94a3b8;">
+          SCROLL TO EXPLORE EVERY DISTRO
+        </p>
+        <div class="scroll-indicator" id="scroll-to-explore">
+          <span>Scroll to Explore</span>
+          <div class="scroll-indicator-line"></div>
+        </div>
+      </section>
+
+      <!-- Editorial Intro -->
+      <section class="intro-section" id="intro">
+        <div class="intro-watermark">LINUX</div>
+        <div class="intro-content">
+          <blockquote class="intro-quote" id="intro-quote">
+            “Linux is not one operating system. It is a kernel surrounded by an entire universe of ideas.”
+          </blockquote>
+          <div class="intro-pillars">
+            <div class="pillar-item">
+              <div class="pillar-num">01</div>
+              <div class="pillar-title">Kernel & Architecture</div>
+              <div class="pillar-desc">Monolithic hardware abstraction delivering process scheduling, memory virtualization, and device control.</div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-num">02</div>
+              <div class="pillar-title">GNU & Userland</div>
+              <div class="pillar-desc">Complete POSIX runtime layer providing coreutils, system daemons, compilers, and user shell tools.</div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-num">03</div>
+              <div class="pillar-title">Package Philosophy</div>
+              <div class="pillar-desc">Divergent package paradigms: deb, rpm, pacman, source compilation, and functional atomic Nix stores.</div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-num">04</div>
+              <div class="pillar-title">Desktop & Freedom</div>
+              <div class="pillar-desc">Dynamic human interfaces from tiling window managers to complete desktop environments shaped by free software.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DISTRO SECTORS CONTAINER -->
+      <div id="sectors-container">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+
+      <!-- Constellation Galaxy Map -->
+      <section id="constellation-section">
+        <div class="constellation-header">
+          <div class="pillar-num" style="margin-bottom: 0.5rem;">COSMIC NAVIGATION</div>
+          <h2 class="constellation-title">The Distro Constellation</h2>
+          <p style="color: #94a3b8; margin-bottom: 1.5rem;">Explore all distributions mapped as celestial coordinates. Hover to inspect lineage; click to warp to its planetary orbit.</p>
+          <div class="constellation-filters" id="constellation-filters">
+            <!-- Filter pills generated dynamically -->
+          </div>
+        </div>
+        <div class="constellation-canvas-wrap">
+          <canvas id="galaxy-canvas"></canvas>
+          <div id="galaxy-tooltip"></div>
+        </div>
+      </section>
+
+      <!-- Distro Oracle Wheel -->
+      <section id="oracle-section">
+        <div class="oracle-header">
+          <div class="oracle-kicker">Deterministic Cosmic Oracle</div>
+          <h2 class="oracle-title">The Distro Oracle</h2>
+          <p class="oracle-subtitle">“Let chance choose your next Linux.”</p>
+        </div>
+
+        <div class="wheel-container">
+          <div class="wheel-pointer">
+            <svg viewBox="0 0 24 32" fill="none">
+              <path d="M12 32L0 8C0 3.58 5.37 0 12 0C18.63 0 24 3.58 24 8L12 32Z" fill="#00f0ff"/>
+              <circle cx="12" cy="9" r="4" fill="#030508"/>
+            </svg>
+          </div>
+          <canvas id="wheel-canvas" width="1200" height="1200"></canvas>
+          <button class="wheel-center-btn" id="spin-btn">
+            <span>SPIN</span>
+            <span style="font-size: 0.65rem; color: #00f0ff; letter-spacing: 0.15em;">ORACLE</span>
+          </button>
+        </div>
+
+        <!-- History of Discoveries -->
+        <div class="history-section">
+          <div class="history-title">
+            <span>Your Discoveries</span>
+            <button id="clear-history-btn" style="background: none; border: none; color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; cursor: pointer;">CLEAR</button>
+          </div>
+          <div class="history-list" id="history-list">
+            <!-- Saved discoveries populated here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Final CTA / Footer -->
+      <footer class="footer-section">
+        <h2 class="footer-cta">The Universe is Open Source.</h2>
+        <p class="footer-sub">Linux is a kernel. The distributions are the universe around it.</p>
+        <div class="footer-line">
+          Crafted as an interactive tribute to the thousands of contributors who build free software.
+        </div>
+      </footer>
+    </main>
+
+    <!-- Oracle Winning Reveal Modal -->
+    <div id="oracle-result-modal">
+      <div class="modal-card">
+        <div class="modal-kicker">Cosmic Oracle Selection</div>
+        <div class="modal-emblem" id="modal-emblem"></div>
+        <h3 class="modal-title" id="modal-title">Debian</h3>
+        <div class="modal-meta" id="modal-meta">1993 · DEBIAN FAMILY</div>
+        <p class="modal-desc" id="modal-desc"></p>
+        <div class="modal-how-to">
+          <div class="modal-how-title">How To Try It</div>
+          <div class="modal-how-text" id="modal-how">
+            Download the official ISO, flash to a USB drive using Balena Etcher or Ventoy, and test in Live Mode or a virtual machine (QEMU/VirtualBox).
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="nav-btn" id="modal-close-btn" style="padding: 0.8rem 1.8rem; font-size: 0.85rem;">CONTINUE EXPLORING</button>
+          <button class="nav-btn" id="modal-jump-btn" style="padding: 0.8rem 1.8rem; font-size: 0.85rem; background: #00f0ff; color: #030508;">WARP TO DISTRO</button>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- APPLICATION SCRIPT LOGIC -->
+    <script>
+      // ==========================================
+      // LINUX UNIVERSE FAMILIES DEFINITION
+      // ==========================================
+      const FAMILIES = {
+        debian: {
+          id: 'debian',
+          name: 'Debian Family',
+          code: '01',
+          kicker: 'CRIMSON CORE // THE SOCIAL CONTRACT',
+          desc: 'Forged in 1993 by Ian Murdock, the Debian universe established the social contract of pure free software, the dpkg/apt architecture, and remains the foundational root for hundreds of derivative distributions across server and personal computing.',
+          primaryColor: '#d70a53',
+          secondaryColor: '#e95420',
+          gradient: 'radial-gradient(circle at center, rgba(215, 10, 83, 0.15) 0%, transparent 70%)'
+        },
+        redhat: {
+          id: 'redhat',
+          name: 'Red Hat Family',
+          code: '02',
+          kicker: 'SCARLET ENTERPRISE // RPM FEDERATION',
+          desc: 'Pioneering corporate open-source infrastructure and the RPM ecosystem, this lineage powers global enterprise datacenters, cloud platforms, and bleeding-edge upstream innovations through Fedora and enterprise-grade derivatives.',
+          primaryColor: '#ee0000',
+          secondaryColor: '#c91d24',
+          gradient: 'radial-gradient(circle at center, rgba(238, 0, 0, 0.14) 0%, transparent 70%)'
+        },
+        arch: {
+          id: 'arch',
+          name: 'Arch Family',
+          code: '03',
+          kicker: 'CYAN PURITY // ROLLING SIMPLICITY',
+          desc: 'Adhering to the KISS principle (Keep It Simple, Stupid) and rolling-release delivery, the Arch cosmos delivers minimal base installations where users hand-curate their operating environment via pacman and the Arch User Repository.',
+          primaryColor: '#1793d1',
+          secondaryColor: '#00f0ff',
+          gradient: 'radial-gradient(circle at center, rgba(23, 147, 209, 0.15) 0%, transparent 70%)'
+        },
+        suse: {
+          id: 'suse',
+          name: 'SUSE Family',
+          code: '04',
+          kicker: 'EMERALD CHAMELEON // YAST PRECISION',
+          desc: 'Emerging from Nuremberg in 1992, the SUSE green domain combines industrial German engineering, advanced Btrfs snapshots, openQA automated testing, and transactional microOS architecture.',
+          primaryColor: '#73ba25',
+          secondaryColor: '#10b981',
+          gradient: 'radial-gradient(circle at center, rgba(115, 186, 37, 0.14) 0%, transparent 70%)'
+        },
+        independent: {
+          id: 'independent',
+          name: 'Independent Family',
+          code: '05',
+          kicker: 'ULTRAVIOLET AUTONOMY // RADICAL ARCHITECTURE',
+          desc: 'Distributions built from scratch without ancestral lineage. These systems pioneer radical paradigms: source-compiled optimization, purely functional package declarations, musl libc minimalism, and independent package trees.',
+          primaryColor: '#8b5cf6',
+          secondaryColor: '#c084fc',
+          gradient: 'radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, transparent 70%)'
+        },
+        special: {
+          id: 'special',
+          name: 'Special Purpose Family',
+          code: '06',
+          kicker: 'SOLAR FOCUS // SPECIALIZED REALMS',
+          desc: 'Bespoke operational environments engineered for singular domains: impenetrable hypervisor isolation, amnesic anonymity, handheld gaming handhelds, air-gapped forensic auditing, and network routing appliances.',
+          primaryColor: '#f59e0b',
+          secondaryColor: '#f43f5e',
+          gradient: 'radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 70%)'
+        }
+      };
+
+      // ==========================================
+      // LINUX DISTRIBUTIONS DATASET (128 DISTROS)
+      // Exactly 1 source of truth for all modules
+      // ==========================================
+      const DISTRO_DATA = [
+        // DEBIAN FAMILY (32)
+        {
+          name: "Debian",
+          family: "Debian",
+          year: 1993,
+          description: "The universal operating system and democratic beacon of free software. Known for rigorous stability, the Debian Social Contract, and its comprehensive dpkg/APT package management system.",
+          colors: ["#d70a53", "#ff6b8b"],
+          tagline: "The Universal Operating System",
+          pkg: "dpkg / apt",
+          kernel: "Linux LTS / kFreeBSD",
+          logoType: "spiral"
+        },
+        {
+          name: "Ubuntu",
+          family: "Debian",
+          year: 2004,
+          description: "Canonical's distribution that brought Linux to the global mainstream. Combines polished GNOME desktops with predictable six-month releases, LTS enterprise tiers, and cloud dominance.",
+          colors: ["#e95420", "#77216f"],
+          tagline: "Linux for Human Beings",
+          pkg: "APT / Snap",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "Linux Mint",
+          family: "Debian",
+          year: 2006,
+          description: "Champion of classic desktop usability and user sovereignty. Developed the Cinnamon and MATE desktop environments with a focus on out-of-the-box multimedia workflows.",
+          colors: ["#87cf3e", "#2e7d32"],
+          tagline: "From Freedom Came Elegance",
+          pkg: "APT / Flatpak",
+          kernel: "Linux LTS",
+          logoType: "leaf"
+        },
+        {
+          name: "Pop!_OS",
+          family: "Debian",
+          year: 2017,
+          description: "System76's engineering-first distribution engineered for creators, STEM developers, and gamers. Features automatic window tiling, hybrid GPU switching, and the Rust-based COSMIC desktop.",
+          colors: ["#48b9c7", "#f3b900"],
+          tagline: "Unleash Your Potential",
+          pkg: "APT / Flatpak",
+          kernel: "Linux Rolling",
+          logoType: "circles"
+        },
+        {
+          name: "Kali Linux",
+          family: "Debian",
+          year: 2013,
+          description: "The global benchmark for offensive cybersecurity and penetration testing. Maintained by Offensive Security with over 600 pre-installed vulnerability assessment and forensic tools.",
+          colors: ["#2d7dd2", "#0f172a"],
+          tagline: "The Quieter You Become, The More You Hear",
+          pkg: "APT",
+          kernel: "Custom PenTest Kernel",
+          logoType: "dragon"
+        },
+        {
+          name: "Raspberry Pi OS",
+          family: "Debian",
+          year: 2012,
+          description: "The lightweight computing foundation powering tens of millions of Raspberry Pi single-board computers in education, hobbyist robotics, and industrial IoT edge gateways.",
+          colors: ["#c51a4a", "#6cc04a"],
+          tagline: "Democratizing Computing for All",
+          pkg: "APT",
+          kernel: "Linux ARM Optimized",
+          logoType: "leaf"
+        },
+        {
+          name: "elementary OS",
+          family: "Debian",
+          year: 2011,
+          description: "A thoughtful, privacy-respecting desktop OS inspired by macOS elegance. Built around the Pantheon desktop environment and curated AppCenter with pay-what-you-can indie software.",
+          colors: ["#3689e6", "#52adc8"],
+          tagline: "The Fast, Open, and Privacy-Respecting Alternative",
+          pkg: "APT / Flatpak",
+          kernel: "Linux LTS",
+          logoType: "spiral"
+        },
+        {
+          name: "Zorin OS",
+          family: "Debian",
+          year: 2009,
+          description: "Designed specifically to ease transitions from Windows and macOS with an adaptive desktop layout switcher, wine integration, and fluid modern aesthetics.",
+          colors: ["#0cc0df", "#1063be"],
+          tagline: "Make Your Computer Better",
+          pkg: "APT / Flatpak",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "MX Linux",
+          family: "Debian",
+          year: 2014,
+          description: "A cooperative venture between antiX and former MEPIS communities offering midweight elegance, high stability, and an extensive suite of bespoke MX graphical configuration tools.",
+          colors: ["#000000", "#e63946"],
+          tagline: "Simple Elegance with Proven Stability",
+          pkg: "APT / MX Tools",
+          kernel: "Debian Stable / AHS",
+          logoType: "delta"
+        },
+        {
+          name: "Tails",
+          family: "Debian",
+          year: 2009,
+          description: "The Amnesic Incognito Live System designed for privacy advocates and journalists. Routes all outbound network traffic through Tor and leaves zero cryptographic footprint on RAM shutdown.",
+          colors: ["#56347c", "#00d2c4"],
+          tagline: "Privacy Anywhere for Anyone",
+          pkg: "APT Live",
+          kernel: "Linux Hardened",
+          logoType: "eye"
+        },
+        {
+          name: "Deepin",
+          family: "Debian",
+          year: 2004,
+          description: "Showcases the lavish Deepin Desktop Environment (DDE) with rounded translucent frosted glass aesthetics, customized Qt applications, and refined touch-gesture ergonomics.",
+          colors: ["#0070e0", "#00d8b4"],
+          tagline: "Beauty is in the Details",
+          pkg: "APT / DDE",
+          kernel: "Linux Stable",
+          logoType: "spiral"
+        },
+        {
+          name: "KDE neon",
+          family: "Debian",
+          year: 2016,
+          description: "A rolling showcase delivering the very latest KDE Plasma desktops and KDE Frameworks built on top of a rock-solid, predictable Ubuntu LTS system foundation.",
+          colors: ["#2980b9", "#27ae60"],
+          tagline: "Solid Core, Latest KDE Goodies",
+          pkg: "APT / Discover",
+          kernel: "Ubuntu LTS",
+          logoType: "circles"
+        },
+        {
+          name: "Devuan",
+          family: "Debian",
+          year: 2016,
+          description: "A principled Debian fork dedicated to init freedom. Avoids systemd in favor of traditional SysVinit, OpenRC, or runit to preserve Unix simplicity and modularity.",
+          colors: ["#5b146f", "#9b59b6"],
+          tagline: "Debian Without Systemd",
+          pkg: "APT",
+          kernel: "Linux Debian",
+          logoType: "spiral"
+        },
+        {
+          name: "antiX",
+          family: "Debian",
+          year: 2007,
+          description: "Fast, lightweight, and systemd-free desktop operating system engineered to resurrect aging legacy 32-bit and 64-bit hardware with minimal memory footprints.",
+          colors: ["#2b2b2b", "#d70a53"],
+          tagline: "Proudly Anti-Fascist and Systemd-Free",
+          pkg: "APT",
+          kernel: "Linux Lightweight",
+          logoType: "delta"
+        },
+        {
+          name: "Q4OS",
+          family: "Debian",
+          year: 2014,
+          description: "Fast and friendly desktop OS featuring the Trinity Desktop Environment (TDE) alongside modern KDE Plasma, specifically targeting enterprise and business desktop workflows.",
+          colors: ["#0055a5", "#4a90e2"],
+          tagline: "A Fast and Powerful Operating System",
+          pkg: "APT",
+          kernel: "Debian LTS",
+          logoType: "shield"
+        },
+        {
+          name: "SparkyLinux",
+          family: "Debian",
+          year: 2012,
+          description: "A lightweight, fast, and simple Linux distribution based on Debian testing/stable, tailored to both old and new computers with diverse desktop flavors.",
+          colors: ["#ef476f", "#ffd166"],
+          tagline: "Lightweight, Fast, and Simple",
+          pkg: "APT / Sparky Tools",
+          kernel: "Debian / Liquorix",
+          logoType: "spiral"
+        },
+        {
+          name: "Peppermint OS",
+          family: "Debian",
+          year: 2010,
+          description: "A minimal, clean operating system featuring ICE site-specific browser tools that integrate cloud and local web apps seamlessly into the desktop interface.",
+          colors: ["#e63946", "#f1faee"],
+          tagline: "The Cloud-Focused Lightweight OS",
+          pkg: "APT / Flatpak",
+          kernel: "Debian Stable",
+          logoType: "leaf"
+        },
+        {
+          name: "Bodhi Linux",
+          family: "Debian",
+          year: 2011,
+          description: "Features the Moksha desktop fork of Enlightenment 17. Extreme modularity and featherweight RAM usage allow it to run smoothly on minimal hardware.",
+          colors: ["#548235", "#a9d18e"],
+          tagline: "Enlightened Minimalism",
+          pkg: "APT",
+          kernel: "Linux LTS",
+          logoType: "leaf"
+        },
+        {
+          name: "Lubuntu",
+          family: "Debian",
+          year: 2009,
+          description: "Official Ubuntu flavor employing the LXQt desktop. Optimized for speed and energy efficiency without sacrificing contemporary application compatibility.",
+          colors: ["#0068c8", "#1eaaf1"],
+          tagline: "Lightweight, Fast, Easier",
+          pkg: "APT / Snap",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "Xubuntu",
+          family: "Debian",
+          year: 2006,
+          description: "Integrates the dependable, customizable Xfce desktop environment with the expansive package ecosystem and security infrastructure of Ubuntu.",
+          colors: ["#1e5799", "#2989d8"],
+          tagline: "Elegant, Stable and Resource-Friendly",
+          pkg: "APT / Snap",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "Ubuntu MATE",
+          family: "Debian",
+          year: 2014,
+          description: "Preserves the classic GNOME 2 metaphor through the modern MATE desktop while incorporating modern HiDPI display scaling and adaptive panel layouts.",
+          colors: ["#87a556", "#4b6f44"],
+          tagline: "For a Retrospective Modern Desktop",
+          pkg: "APT / Snap",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "Ubuntu Studio",
+          family: "Debian",
+          year: 2007,
+          description: "The premier distribution for multimedia content creators, equipped with low-latency audio kernels and comprehensive suites for audio, video, and graphics production.",
+          colors: ["#2c80c5", "#00b4d8"],
+          tagline: "Empowering Creative Freedom",
+          pkg: "APT / Snap",
+          kernel: "Linux Low-Latency",
+          logoType: "circles"
+        },
+        {
+          name: "Kubuntu",
+          family: "Debian",
+          year: 2005,
+          description: "The classic blend of Ubuntu stability and the powerful, hyper-configurable KDE Plasma desktop environment for enthusiasts and workstation professionals.",
+          colors: ["#0079c1", "#0298e3"],
+          tagline: "Friendly Computing with Plasma",
+          pkg: "APT / Snap",
+          kernel: "Linux Generic",
+          logoType: "circles"
+        },
+        {
+          name: "Parrot OS",
+          family: "Debian",
+          year: 2013,
+          description: "A security and digital forensics workstation designed for ethical hackers and developers with cloud integration and robust sandboxing capabilities.",
+          colors: ["#00e6ff", "#0f2027"],
+          tagline: "Security, Privacy, and Development",
+          pkg: "APT",
+          kernel: "Linux Hardened",
+          logoType: "dragon"
+        },
+        {
+          name: "PureOS",
+          family: "Debian",
+          year: 2015,
+          description: "Purism's FSF-endorsed distribution delivering strict 100% free software, convergence between Librem 5 smartphones and laptops, and built-in hardware killswitch support.",
+          colors: ["#2d3436", "#0984e3"],
+          tagline: "Freedom, Privacy, and Convergence",
+          pkg: "APT / Flatpak",
+          kernel: "Linux-libre",
+          logoType: "shield"
+        },
+        {
+          name: "BackBox",
+          family: "Debian",
+          year: 2010,
+          description: "An Ubuntu-based penetration testing distribution emphasizing desktop lightness and streamlined security assessment tools for industrial web application auditing.",
+          colors: ["#1f4068", "#162447"],
+          tagline: "Penetration Testing & Security Assessment",
+          pkg: "APT",
+          kernel: "Linux Security",
+          logoType: "dragon"
+        },
+        {
+          name: "Whonix",
+          family: "Debian",
+          year: 2012,
+          description: "Dual-virtual-machine architecture separating Gateway from Workstation to guarantee complete IP isolation and DNS leak prevention over the Tor network.",
+          colors: ["#3a0ca3", "#4361ee"],
+          tagline: "Anonymous Operating System",
+          pkg: "APT",
+          kernel: "Linux Hardened",
+          logoType: "eye"
+        },
+        {
+          name: "BunsenLabs",
+          family: "Debian",
+          year: 2015,
+          description: "The spiritual community successor to CrunchBang Linux, providing a lightweight, beautifully configured Openbox window manager environment on top of Debian Stable.",
+          colors: ["#e0e1dd", "#415a77"],
+          tagline: "The Lightweight Openbox Experience",
+          pkg: "APT",
+          kernel: "Debian Stable",
+          logoType: "spiral"
+        },
+        {
+          name: "Nitrux",
+          family: "Debian",
+          year: 2018,
+          description: "An innovative, systemd-free immutable OS built on Debian Unstable featuring the NX Desktop on MauiKit and strictly prioritizing AppImage and Flatpak sandboxing.",
+          colors: ["#5b21b6", "#ec4899"],
+          tagline: "A Different Take on the Linux Desktop",
+          pkg: "AppImage / Flatpak",
+          kernel: "Liquorix / XanMod",
+          logoType: "circles"
+        },
+        {
+          name: "Trisquel",
+          family: "Debian",
+          year: 2005,
+          description: "A strictly 100% free distribution certified by the Free Software Foundation, stripping all proprietary firmware and non-free blobs from the Linux-libre kernel.",
+          colors: ["#0055a5", "#0088cc"],
+          tagline: "A Fully Free Operating System",
+          pkg: "APT",
+          kernel: "Linux-libre",
+          logoType: "spiral"
+        },
+        {
+          name: "Voyager",
+          family: "Debian",
+          year: 2011,
+          description: "French distribution infusing both Ubuntu and Debian with a distinct, artistic desktop layout combining customized GNOME shells, Conky monitors, and media panels.",
+          colors: ["#2b580c", "#639a67"],
+          tagline: "The Aesthetic French Voyage",
+          pkg: "APT",
+          kernel: "Linux Generic",
+          logoType: "spiral"
+        },
+        {
+          name: "Vanilla OS",
+          family: "Debian",
+          year: 2022,
+          description: "An immutable operating system using ABRoot atomic transactional updates, containerized package environments (APX), and pure unadulterated GNOME desktop experience.",
+          colors: ["#d97706", "#f59e0b"],
+          tagline: "Pure, Unmodified, Immutable",
+          pkg: "ABRoot / APX",
+          kernel: "Linux Generic",
+          logoType: "shield"
+        },
+
+        // RED HAT FAMILY (18)
+        {
+          name: "Fedora",
+          family: "Red Hat",
+          year: 2003,
+          description: "The bleeding-edge innovation proving ground sponsored by Red Hat. Always first to pioneer technologies like Wayland, PipeWire, systemd, and Btrfs as standard defaults.",
+          colors: ["#294172", "#3c6eb4"],
+          tagline: "Innovation, Freedom, Excellence",
+          pkg: "DNF / RPM",
+          kernel: "Linux Latest Upstream",
+          logoType: "infinity"
+        },
+        {
+          name: "Red Hat Enterprise Linux",
+          family: "Red Hat",
+          year: 2000,
+          description: "The gold standard of enterprise mission-critical operating systems, powering Fortune 500 infrastructure, stock exchanges, and sovereign clouds with 10-year support cycles.",
+          colors: ["#ee0000", "#111111"],
+          tagline: "The World's Leading Enterprise Linux",
+          pkg: "RPM / DNF",
+          kernel: "Linux Hardened Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "CentOS Stream",
+          family: "Red Hat",
+          year: 2019,
+          description: "The continuously delivered upstream collaboration platform for future minor releases of RHEL, allowing the broader ecosystem to preview and influence enterprise features.",
+          colors: ["#93227f", "#e05244"],
+          tagline: "Upstream Enterprise Development",
+          pkg: "DNF / RPM",
+          kernel: "RHEL Preview Kernel",
+          logoType: "infinity"
+        },
+        {
+          name: "Rocky Linux",
+          family: "Red Hat",
+          year: 2021,
+          description: "Community enterprise operating system founded by Gregory Kurtzer to recreate the 100% bug-for-bug compatible open-source downstream RHEL experience.",
+          colors: ["#0f9960", "#215db0"],
+          tagline: "Solid Ground for the Enterprise",
+          pkg: "DNF / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "AlmaLinux",
+          family: "Red Hat",
+          year: 2021,
+          description: "Community-governed 1:1 binary-compatible enterprise operating system backed by a nonprofit foundation, trusted across supercomputing clusters and web hosting providers.",
+          colors: ["#ff3366", "#3366ff"],
+          tagline: "An Open-Source, Community-Owned RHEL Derivative",
+          pkg: "DNF / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "Oracle Linux",
+          family: "Red Hat",
+          year: 2006,
+          description: "Engineered for high performance database workloads with the Unbreakable Enterprise Kernel (UEK), zero-downtime Ksplice patching, and complete RHEL compatibility.",
+          colors: ["#f80000", "#c70000"],
+          tagline: "Engineered for Enterprise Workloads",
+          pkg: "RPM / DNF",
+          kernel: "Unbreakable Enterprise Kernel",
+          logoType: "infinity"
+        },
+        {
+          name: "Nobara Linux",
+          family: "Red Hat",
+          year: 2022,
+          description: "GloriousEggroll's gaming and creator-tuned spin of Fedora, shipping out-of-the-box wine-ge, custom kernel patches, OBS studio integrations, and driver automations.",
+          colors: ["#ff007f", "#7928ca"],
+          tagline: "Gaming and Streaming Made Effortless",
+          pkg: "DNF / RPM",
+          kernel: "Custom Zen Gaming Kernel",
+          logoType: "infinity"
+        },
+        {
+          name: "Scientific Linux",
+          family: "Red Hat",
+          year: 2004,
+          description: "Historic distribution produced jointly by Fermilab and CERN to provide a standard computing environment for high-energy physics laboratories across the globe.",
+          colors: ["#2b4c7e", "#4a7bb0"],
+          tagline: "Built for High-Energy Science",
+          pkg: "Yum / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "ClearOS",
+          family: "Red Hat",
+          year: 2009,
+          description: "Targeted at small and medium business networks, functioning as an integrated perimeter firewall, content filter, and private VPN server via a web-based management UI.",
+          colors: ["#00a896", "#028090"],
+          tagline: "Next-Gen Small Business Cloud Gateway",
+          pkg: "RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "EuroLinux",
+          family: "Red Hat",
+          year: 2013,
+          description: "European enterprise-class operating system based on RHEL source code, optimized for telecommunications infrastructure and banking security compliance.",
+          colors: ["#003399", "#ffcc00"],
+          tagline: "European Enterprise Security & Sovereignty",
+          pkg: "DNF / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "Springdale Linux",
+          family: "Red Hat",
+          year: 2004,
+          description: "Formerly known as PUIAS Linux, maintained by Princeton University and the Institute for Advanced Study for academic compute clusters and research.",
+          colors: ["#e77500", "#121212"],
+          tagline: "Princeton University Academic System",
+          pkg: "DNF / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "Amazon Linux",
+          family: "Red Hat",
+          year: 2010,
+          description: "AWS cloud-native Linux optimized for high bandwidth EC2 virtual compute instances, secure container workloads, and integrated AWS CLI telemetry.",
+          colors: ["#ff9900", "#232f3e"],
+          tagline: "High-Performance Cloud Infrastructure",
+          pkg: "DNF / RPM",
+          kernel: "AWS Optimized Kernel",
+          logoType: "shield"
+        },
+        {
+          name: "Mageia",
+          family: "Red Hat",
+          year: 2011,
+          description: "A community fork of Mandriva Linux that preserves user-friendly system administration through the celebrated Mageia Control Center and diverse desktop options.",
+          colors: ["#262626", "#1a8fc3"],
+          tagline: "Great Community, Stable Software",
+          pkg: "URPMI / RPM",
+          kernel: "Linux Stable",
+          logoType: "infinity"
+        },
+        {
+          name: "OpenMandriva",
+          family: "Red Hat",
+          year: 2013,
+          description: "Direct heir to the Mandrake/Mandriva heritage, compiled natively with LLVM/Clang to extract maximum microprocessor efficiency and multimedia fluidness.",
+          colors: ["#0055a5", "#ff8800"],
+          tagline: "LLVM/Clang Powered Performance",
+          pkg: "DNF / RPM",
+          kernel: "Linux Clang Compiled",
+          logoType: "infinity"
+        },
+        {
+          name: "ROSA Linux",
+          family: "Red Hat",
+          year: 2012,
+          description: "Russian enterprise and desktop distribution featuring tailored Plasma and GNOME desktops with proprietary enterprise security extensions and document controls.",
+          colors: ["#e31e24", "#333333"],
+          tagline: "Enterprise Grade Desktop Precision",
+          pkg: "URPMI / RPM",
+          kernel: "Linux ROSA",
+          logoType: "shield"
+        },
+        {
+          name: "PCLinuxOS",
+          family: "Red Hat",
+          year: 2003,
+          description: "A user-oriented rolling release with a unique hybrid architecture using Mandriva's RPM format driven by Debian's APT/Synaptic package management frontend.",
+          colors: ["#004b91", "#1976d2"],
+          tagline: "Radically Simple Desktop Experience",
+          pkg: "APT-RPM",
+          kernel: "Linux Rolling",
+          logoType: "infinity"
+        },
+        {
+          name: "Navy Linux",
+          family: "Red Hat",
+          year: 2021,
+          description: "A minimalist downstream rebuild of RHEL intended to serve as a stripped-down, cloud-optimized base image with reduced attack surfaces.",
+          colors: ["#001f3f", "#39cccc"],
+          tagline: "Stripped-Down Minimal Enterprise Base",
+          pkg: "DNF / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "shield"
+        },
+        {
+          name: "Berry Linux",
+          family: "Red Hat",
+          year: 2003,
+          description: "Japanese live distribution originally based on Fedora, famous for rapid boot times, bilingual input setup, and automated audio player integration.",
+          colors: ["#c71585", "#ff69b4"],
+          tagline: "Fast Japanese Live Computing",
+          pkg: "RPM",
+          kernel: "Linux Live",
+          logoType: "leaf"
+        },
+
+        // ARCH FAMILY (18)
+        {
+          name: "Arch Linux",
+          family: "Arch",
+          year: 2002,
+          description: "The minimalist rolling release built around KISS principles. Puts full control into user hands through pacman, bleeding-edge packages, and the comprehensive Arch Wiki.",
+          colors: ["#1793d1", "#333333"],
+          tagline: "A Simple, Lightweight Linux Distribution",
+          pkg: "pacman",
+          kernel: "Linux Vanilla Latest",
+          logoType: "delta"
+        },
+        {
+          name: "Manjaro",
+          family: "Arch",
+          year: 2011,
+          description: "Accessible Arch-based operating system providing automated hardware detection, curated release stabilization buffers, and pamac graphical software store.",
+          colors: ["#35bf5c", "#2c3e50"],
+          tagline: "Enjoy the Simplicity",
+          pkg: "pacman / pamac",
+          kernel: "Linux Multi-Kernel Manager",
+          logoType: "delta"
+        },
+        {
+          name: "EndeavourOS",
+          family: "Arch",
+          year: 2019,
+          description: "The spiritual successor to Antergos. Delivers an unbloated terminal-centric installer that connects users to the pure Arch experience with a warm, welcoming community.",
+          colors: ["#7f5af0", "#ff5470"],
+          tagline: "A Terminal-Centric Arch Gateway",
+          pkg: "pacman / yay",
+          kernel: "Linux Upstream",
+          logoType: "delta"
+        },
+        {
+          name: "Garuda Linux",
+          family: "Arch",
+          year: 2020,
+          description: "Neon-drenched performance powerhouse featuring Btrfs snapshots out of the box, automatic chaotic-AUR access, zen kernel tweaks, and glowing Dragonized aesthetics.",
+          colors: ["#00ffff", "#ff007f"],
+          tagline: "Performance by Default, Drenched in Neon",
+          pkg: "pacman / Chaotic-AUR",
+          kernel: "Linux Zen",
+          logoType: "dragon"
+        },
+        {
+          name: "Artix Linux",
+          family: "Arch",
+          year: 2017,
+          description: "Arch Linux liberated from systemd. Supports OpenRC, runit, s6, and dinit init systems while preserving full compatibility with pacman and Arch rolling trees.",
+          colors: ["#10a5e9", "#1e293b"],
+          tagline: "Arch Without Systemd",
+          pkg: "pacman",
+          kernel: "Linux Vanilla",
+          logoType: "delta"
+        },
+        {
+          name: "CachyOS",
+          family: "Arch",
+          year: 2021,
+          description: "Hyper-optimized Arch derivative compiled with x86-64-v3/v4 architecture optimizations, BORE (Burst-Oriented Response Enhancer) scheduler, and custom gaming kernels.",
+          colors: ["#00f0ff", "#134e4a"],
+          tagline: "Hyper-Optimized x86-64 Architecture Speed",
+          pkg: "pacman / Cachy Repos",
+          kernel: "Linux BORE / EEVDF",
+          logoType: "delta"
+        },
+        {
+          name: "ArcoLinux",
+          family: "Arch",
+          year: 2018,
+          description: "A comprehensive educational operating system structured into progressive learning phases to teach users how to master Linux, window managers, and distro-building.",
+          colors: ["#673ab7", "#3f51b5"],
+          tagline: "Learn, Build, and Master Linux",
+          pkg: "pacman",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+        {
+          name: "BlackArch",
+          family: "Arch",
+          year: 2013,
+          description: "An elite penetration testing distribution built on top of Arch Linux containing over 2,800 cybersecurity tools organized into modular weaponized packages.",
+          colors: ["#ff0033", "#000000"],
+          tagline: "Weaponized Arch Cybersecurity Arsenal",
+          pkg: "pacman / BlackArch Repos",
+          kernel: "Linux Hardened",
+          logoType: "dragon"
+        },
+        {
+          name: "SteamOS",
+          family: "Arch",
+          year: 2013,
+          description: "Valve's immutable gaming operating system powering the Steam Deck handheld console, using Proton compatibility layers, Gamescope compositor, and atomic A/B root updates.",
+          colors: ["#1b2838", "#66c0f4"],
+          tagline: "Handheld PC Gaming Redefined",
+          pkg: "pacman / Flatpak (Immutable)",
+          kernel: "Valve Custom Linux",
+          logoType: "piston"
+        },
+        {
+          name: "Archcraft",
+          family: "Arch",
+          year: 2020,
+          description: "A visually exquisite lightweight distribution showcasing minimal tiling and stacking window managers (Openbox, bspwm, i3) preconfigured with pixel-perfect themes.",
+          colors: ["#00b4d8", "#0077b6"],
+          tagline: "Minimal, Beautiful Window Managers",
+          pkg: "pacman",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+        {
+          name: "RebornOS",
+          family: "Arch",
+          year: 2017,
+          description: "User-friendly Arch installer that grants access to dozens of desktop environments, ARM architectures, and Flatpak/Wine tools right during initial setup.",
+          colors: ["#3b82f6", "#1d4ed8"],
+          tagline: "Arch Power with Unlimited Choice",
+          pkg: "pacman",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+        {
+          name: "Crystal Linux",
+          family: "Arch",
+          year: 2022,
+          description: "A modern, beginner-accessible take on Arch featuring the fast Jade GUI installer, custom Onyx desktop setup, and the Ame package manager wrapper.",
+          colors: ["#a855f7", "#ec4899"],
+          tagline: "Crystal Clear Arch Simplicity",
+          pkg: "ame / pacman",
+          kernel: "Linux Upstream",
+          logoType: "delta"
+        },
+        {
+          name: "BlendOS",
+          family: "Arch",
+          year: 2023,
+          description: "An immutable operating system blending Arch, Fedora, Debian, and Android apps into a unified desktop using lightweight nested Podman containers.",
+          colors: ["#6366f1", "#4338ca"],
+          tagline: "A Seamless Blend of All Linux Worlds",
+          pkg: "blend / multi-repo",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+        {
+          name: "XeroLinux",
+          family: "Arch",
+          year: 2021,
+          description: "Enthusiast workstation OS engineered for high aesthetic eye-candy, sporting heavily customized KDE Plasma themes, Latte docks, and performance tuning.",
+          colors: ["#ec4899", "#8b5cf6"],
+          tagline: "Eye-Candy Workstation for Enthusiasts",
+          pkg: "pacman / yay",
+          kernel: "Linux Zen",
+          logoType: "delta"
+        },
+        {
+          name: "Parch Linux",
+          family: "Arch",
+          year: 2022,
+          description: "Open-source Persian Arch-based project delivering clean pre-configured setups across GNOME, XFCE, and Cinnamon for international users.",
+          colors: ["#10b981", "#059669"],
+          tagline: "Clean, Lightweight Global Arch",
+          pkg: "pacman",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+        {
+          name: "KaOS",
+          family: "Arch",
+          year: 2013,
+          description: "A focused, independent rolling release built on pure 64-bit architecture dedicated strictly to one desktop environment (KDE Plasma) and the Qt toolkit.",
+          colors: ["#00a896", "#028090"],
+          tagline: "Purely Dedicated to KDE and Qt",
+          pkg: "pacman",
+          kernel: "Linux Rolling",
+          logoType: "delta"
+        },
+        {
+          name: "Hyperbola",
+          family: "Arch",
+          year: 2017,
+          description: "Hardcore free-software distribution combining Arch simplicity with Debian stability principles, completely libre without any systemd components.",
+          colors: ["#6b7280", "#111827"],
+          tagline: "Strictly Free, Systemd-Free Arch/Debian Hybrid",
+          pkg: "pacman",
+          kernel: "Linux-libre Hardened",
+          logoType: "shield"
+        },
+        {
+          name: "Obarun",
+          family: "Arch",
+          year: 2015,
+          description: "Arch-based distribution using the skarnet s6 supervision suite instead of systemd, focused on robust process monitoring and complete service isolation.",
+          colors: ["#f59e0b", "#d97706"],
+          tagline: "S6 Process Supervision and Arch Rolling",
+          pkg: "pacman",
+          kernel: "Linux Arch",
+          logoType: "delta"
+        },
+
+        // SUSE FAMILY (12)
+        {
+          name: "openSUSE Tumbleweed",
+          family: "SUSE",
+          year: 2014,
+          description: "The pinnacle of reliable rolling releases. Every snapshot is automatically vetted by openQA automated visual testing before hitting user mirrors.",
+          colors: ["#73ba25", "#30ba78"],
+          tagline: "Rolling Release with OpenQA Integrity",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Latest Rolling",
+          logoType: "chameleon"
+        },
+        {
+          name: "openSUSE Leap",
+          family: "SUSE",
+          year: 2015,
+          description: "Combines community agility with the core binary binaries of SUSE Linux Enterprise for unbeatable server and workstation stability.",
+          colors: ["#17b890", "#007a5e"],
+          tagline: "Enterprise Stability Meets Community Freedom",
+          pkg: "Zypper / YaST",
+          kernel: "SLE Shared Kernel",
+          logoType: "chameleon"
+        },
+        {
+          name: "SUSE Linux Enterprise Server",
+          family: "SUSE",
+          year: 2000,
+          description: "Industrial powerhouse running mission-critical SAP applications, mainframe computing, and global cloud deployments with Live Kernel Patching.",
+          colors: ["#30ba78", "#0c322c"],
+          tagline: "The Mission-Critical Enterprise Server",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Hardened Enterprise",
+          logoType: "chameleon"
+        },
+        {
+          name: "SUSE Linux Enterprise Desktop",
+          family: "SUSE",
+          year: 2006,
+          description: "Hardened enterprise workstation platform designed for corporate compliance, mixed-network office workstations, and engineering CAD environments.",
+          colors: ["#73ba25", "#248f58"],
+          tagline: "Enterprise Desktop Productivity",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Enterprise",
+          logoType: "chameleon"
+        },
+        {
+          name: "GeckoLinux",
+          family: "SUSE",
+          year: 2015,
+          description: "Community spin of openSUSE focused on out-of-the-box desktop polish, non-free media codec integration, and smooth font rendering.",
+          colors: ["#84cc16", "#4d7c0f"],
+          tagline: "Polished openSUSE Out of the Box",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Stable",
+          logoType: "chameleon"
+        },
+        {
+          name: "openSUSE Aeon",
+          family: "SUSE",
+          year: 2023,
+          description: "Modern immutable desktop OS with an automated self-healing Btrfs root filesystem, GNOME desktop, and transactional Flatpak runtime sandboxes.",
+          colors: ["#06b6d4", "#0891b2"],
+          tagline: "Modern Transactional Desktop",
+          pkg: "Transactional-Update / Flatpak",
+          kernel: "Linux Rolling",
+          logoType: "chameleon"
+        },
+        {
+          name: "openSUSE Kalpa",
+          family: "SUSE",
+          year: 2023,
+          description: "The sister distribution to Aeon delivering an immutable transactional system base coupled with the KDE Plasma desktop environment.",
+          colors: ["#3b82f6", "#2563eb"],
+          tagline: "Transactional MicroOS with KDE Plasma",
+          pkg: "Transactional-Update / Flatpak",
+          kernel: "Linux Rolling",
+          logoType: "chameleon"
+        },
+        {
+          name: "openSUSE MicroOS",
+          family: "SUSE",
+          year: 2017,
+          description: "Engineered for container hosts and automated edge devices, featuring atomic transactions that automatically roll back if an update fails healthchecks.",
+          colors: ["#10b981", "#047857"],
+          tagline: "Atomic Container Host & Edge Gateway",
+          pkg: "Transactional-Update",
+          kernel: "Linux MicroOS",
+          logoType: "chameleon"
+        },
+        {
+          name: "openSUSE Slowroll",
+          family: "SUSE",
+          year: 2023,
+          description: "A rolling release with a gentler pace: packages are accumulated and rolled out monthly with immediate updates reserved strictly for CVE security fixes.",
+          colors: ["#eab308", "#ca8a04"],
+          tagline: "Calm Rolling Release Pace",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Stable",
+          logoType: "chameleon"
+        },
+        {
+          name: "Regata OS",
+          family: "SUSE",
+          year: 2018,
+          description: "Brazilian gaming-oriented distribution built on openSUSE, featuring Regata OS Game Access store and Vulkan hardware optimizations.",
+          colors: ["#6366f1", "#4f46e5"],
+          tagline: "Gaming Power on openSUSE Foundation",
+          pkg: "Zypper / RPM",
+          kernel: "Linux Gaming",
+          logoType: "chameleon"
+        },
+        {
+          name: "SLE BCI",
+          family: "SUSE",
+          year: 2021,
+          description: "Base Container Images from SUSE providing certified, secure enterprise container foundations for Kubernetes and cloud-native developers.",
+          colors: ["#30ba78", "#111827"],
+          tagline: "Enterprise Base Container Image Foundation",
+          pkg: "Zypper Container",
+          kernel: "Host Kernel",
+          logoType: "server"
+        },
+        {
+          name: "SUSE NeuVector",
+          family: "SUSE",
+          year: 2022,
+          description: "Full-lifecycle container security platform running automated vulnerability scanning, layer-7 container firewalling, and runtime compliance.",
+          colors: ["#14b8a6", "#0f766e"],
+          tagline: "Zero-Trust Container Security Mesh",
+          pkg: "Container Appliance",
+          kernel: "Hardened Appliance",
+          logoType: "shield"
+        },
+
+        // INDEPENDENT FAMILY (24)
+        {
+          name: "Gentoo Linux",
+          family: "Independent",
+          year: 2002,
+          description: "The legendary source-based distribution. Every package is compiled locally from source via Portage using custom USE flags for extreme micro-architecture optimization.",
+          colors: ["#54487a", "#d19a66"],
+          tagline: "Compile Everything, Rule Your Silicon",
+          pkg: "Portage / emerge",
+          kernel: "Custom Source-Compiled",
+          logoType: "claw"
+        },
+        {
+          name: "Slackware",
+          family: "Independent",
+          year: 1993,
+          description: "The oldest actively maintained Linux distribution in existence. Built on pure Unix simplicity, unadorned upstream source packages, and plain shell script administration.",
+          colors: ["#2c3e50", "#34495e"],
+          tagline: "The Original Unix-Like Purist",
+          pkg: "pkgtool / slackpkg",
+          kernel: "Linux Vanilla LTS",
+          logoType: "pipe"
+        },
+        {
+          name: "NixOS",
+          family: "Independent",
+          year: 2003,
+          description: "Revolutionary purely functional operating system configured entirely via a declarative Nix language file. Guarantees deterministic, reproducible, atomic rollbacks.",
+          colors: ["#5277c3", "#7ebae4"],
+          tagline: "Purely Declarative, Reproducible Systems",
+          pkg: "Nix Package Manager",
+          kernel: "Linux Declarative",
+          logoType: "snowflake"
+        },
+        {
+          name: "Void Linux",
+          family: "Independent",
+          year: 2008,
+          description: "An independent rolling release written from scratch featuring the blazing-fast XBPS package manager, runit init supervision, and native support for musl libc.",
+          colors: ["#478061", "#2d523e"],
+          tagline: "Independent Speed with XBPS and Runit",
+          pkg: "XBPS",
+          kernel: "Linux Rolling",
+          logoType: "void"
+        },
+        {
+          name: "Alpine Linux",
+          family: "Independent",
+          year: 2005,
+          description: "Ultra-small, ultra-secure distribution built on musl libc and busybox with PaX/Grsecurity hardening. The ubiquitous 5MB Docker base image of the modern cloud.",
+          colors: ["#0d597f", "#08374f"],
+          tagline: "Small. Simple. Secure.",
+          pkg: "APK",
+          kernel: "Linux Hardened",
+          logoType: "peak"
+        },
+        {
+          name: "Solus",
+          family: "Independent",
+          year: 2015,
+          description: "Independent desktop-focused operating system that created the Budgie desktop, featuring the eopkg package system and performance patches designed for home workstations.",
+          colors: ["#4a90e2", "#2c3e50"],
+          tagline: "Built for Everyday Desktop Excellence",
+          pkg: "eopkg",
+          kernel: "Linux Current",
+          logoType: "delta"
+        },
+        {
+          name: "GNU Guix System",
+          family: "Independent",
+          year: 2015,
+          description: "Advanced functional GNU distribution leveraging Guile Scheme to declare reproducible system configurations with cryptographic integrity and libre freedom.",
+          colors: ["#e5a50a", "#f5c211"],
+          tagline: "Declarative GNU Operating System in Scheme",
+          pkg: "GNU Guix",
+          kernel: "Linux-libre / GNU Hurd",
+          logoType: "snowflake"
+        },
+        {
+          name: "Puppy Linux",
+          family: "Independent",
+          year: 2003,
+          description: "Extremely compact live OS that loads entirely into RAM, running lightning-fast on legacy laptops with unique Woof-CE build tools capable of assembling from upstream packages.",
+          colors: ["#3b82f6", "#60a5fa"],
+          tagline: "Lightning Fast in RAM",
+          pkg: "Puppy Package Manager",
+          kernel: "Linux Compact",
+          logoType: "leaf"
+        },
+        {
+          name: "Tiny Core Linux",
+          family: "Independent",
+          year: 2008,
+          description: "A radically minimal 16MB modular operating system that boots into RAM and lets users construct exactly the system they need piece by piece from scratch.",
+          colors: ["#1e293b", "#475569"],
+          tagline: "The Nomadic Modular 16MB Core",
+          pkg: "tce",
+          kernel: "Linux Micro Core",
+          logoType: "peak"
+        },
+        {
+          name: "CRUX",
+          family: "Independent",
+          year: 2002,
+          description: "Lightweight, x86-64-optimized source-based distribution targeted at experienced users with a tar.gz-based package system and BSD-style init scripts.",
+          colors: ["#0284c7", "#0369a1"],
+          tagline: "Source-Based Optimization for Purists",
+          pkg: "pkgutils",
+          kernel: "Linux Vanilla Source",
+          logoType: "pipe"
+        },
+        {
+          name: "4MLinux",
+          family: "Independent",
+          year: 2010,
+          description: "Miniature independent distribution focusing on the 4 'M's: Maintenance (rescue CD), Multimedia (players), Miniserver (daemons), and Mystery (classic Linux games).",
+          colors: ["#8b5cf6", "#ec4899"],
+          tagline: "Maintenance, Multimedia, Miniserver, Mystery",
+          pkg: "4MLinux Custom",
+          kernel: "Linux Custom",
+          logoType: "pipe"
+        },
+        {
+          name: "Source Mage",
+          family: "Independent",
+          year: 2002,
+          description: "Descended from Sorcerer, uses magical terminology (spells, cast, dispel) to download, compile, and install software directly from upstream source code.",
+          colors: ["#9333ea", "#c084fc"],
+          tagline: "Cast Spells to Build Your System",
+          pkg: "Sorcery / cast",
+          kernel: "Source Compiled",
+          logoType: "claw"
+        },
+        {
+          name: "Funtoo Linux",
+          family: "Independent",
+          year: 2008,
+          description: "Created by Gentoo founder Daniel Robbins. Introduces automated Git-based Portage trees, Metro build tools, and curated sub-architectures.",
+          colors: ["#6366f1", "#4f46e5"],
+          tagline: "Gentoo Heritage, Automated Git Core",
+          pkg: "Portage / emerge",
+          kernel: "Linux Generic Source",
+          logoType: "claw"
+        },
+        {
+          name: "Linux From Scratch",
+          family: "Independent",
+          year: 1999,
+          description: "The ultimate educational rite of passage: Gerard Beekmans' comprehensive book instructing engineers to build a complete operating system manually from raw source tarballs.",
+          colors: ["#e11d48", "#be123c"],
+          tagline: "Build Your Own Operating System",
+          pkg: "Manual Compilation (gcc/make)",
+          kernel: "Handcrafted Custom Kernel",
+          logoType: "pipe"
+        },
+        {
+          name: "GoboLinux",
+          family: "Independent",
+          year: 2003,
+          description: "Re-imagines the Unix filesystem hierarchy: eliminates /usr, /bin, and /lib in favor of /Programs/ProgramName/Version directories linked via symlinks.",
+          colors: ["#f97316", "#ea580c"],
+          tagline: "The Alternative Filesystem Hierarchy",
+          pkg: "Compile / Freshen",
+          kernel: "Linux Gobo",
+          logoType: "cube"
+        },
+        {
+          name: "Serpent OS",
+          family: "Independent",
+          year: 2022,
+          description: "Ikey Doherty's modern, performance-first Linux using moss packaging, boulder builders, and stateless system architecture configured for modern x86 hardware.",
+          colors: ["#10b981", "#14b8a6"],
+          tagline: "Next-Generation Performance Architecture",
+          pkg: "moss / boulder",
+          kernel: "Linux Serpent",
+          logoType: "claw"
+        },
+        {
+          name: "Chimera Linux",
+          family: "Independent",
+          year: 2021,
+          description: "Combines a Linux kernel with a FreeBSD userland, LLVM compiler toolchain, musl libc, and the dinit service manager for an unconventional, clean system.",
+          colors: ["#ec4899", "#be185d"],
+          tagline: "Linux Kernel with FreeBSD Userland and LLVM",
+          pkg: "cports / apk",
+          kernel: "Linux Vanilla",
+          logoType: "void"
+        },
+        {
+          name: "Bedrock Linux",
+          family: "Independent",
+          year: 2012,
+          description: "Meta-distribution allowing packages from different distributions (Arch, Debian, Alpine, Fedora) to coexist transparently and interoperate seamlessly.",
+          colors: ["#64748b", "#334155"],
+          tagline: "The Metadistribution Uniting All Ecosystems",
+          pkg: "brl / multi-strata",
+          kernel: "Any Strata Kernel",
+          logoType: "cube"
+        },
+        {
+          name: "Lunar Linux",
+          family: "Independent",
+          year: 2002,
+          description: "Source-based distribution descending from Sorcerer, utilizing module manifests called 'lunar modules' to compile lightweight lean desktop installations.",
+          colors: ["#38bdf8", "#0284c7"],
+          tagline: "Lean Source Compilation",
+          pkg: "lin / lget",
+          kernel: "Linux Lunar",
+          logoType: "peak"
+        },
+        {
+          name: "Dragora",
+          family: "Independent",
+          year: 2008,
+          description: "An Argentine GNU/Linux distribution written completely from scratch, emphasizing free software purism, KISS principles, and SysVinit simplicity.",
+          colors: ["#f59e0b", "#d97706"],
+          tagline: "100% Free Software Sovereignty",
+          pkg: "qi / graft",
+          kernel: "Linux-libre",
+          logoType: "shield"
+        },
+        {
+          name: "KISS Linux",
+          family: "Independent",
+          year: 2019,
+          description: "Extremely stripped-down source-based distro featuring a package manager written entirely in POSIX sh without third-party dependencies.",
+          colors: ["#111827", "#f3f4f6"],
+          tagline: "Keep It Simple, Stupid",
+          pkg: "kiss (POSIX sh)",
+          kernel: "Linux Vanilla",
+          logoType: "void"
+        },
+        {
+          name: "Oasis Linux",
+          family: "Independent",
+          year: 2020,
+          description: "Experimental static-linking distribution using musl libc, zig, and plan9port tools with isolated sandbox environments for all daemon services.",
+          colors: ["#06b6d4", "#0891b2"],
+          tagline: "Statically-Linked Minimal Sandbox OS",
+          pkg: "samurai / custom",
+          kernel: "Linux Static",
+          logoType: "peak"
+        },
+        {
+          name: "VectorLinux",
+          family: "Independent",
+          year: 2001,
+          description: "Historical Canadian distribution engineered for speed on modest hardware, bundling customized IceWM and XFCE desktops with robust Slackware-derived foundations.",
+          colors: ["#dc2626", "#991b1b"],
+          tagline: "Speed, Performance, Simplicity",
+          pkg: "slapt-get",
+          kernel: "Linux Vector",
+          logoType: "delta"
+        },
+        {
+          name: "Yggdrasil Linux",
+          family: "Independent",
+          year: 1992,
+          description: "The historical pioneering 'Plug-and-Play Linux', one of the very first CD-ROM distributions in history that automated hardware detection and booted straight from disk.",
+          colors: ["#15803d", "#166534"],
+          tagline: "The Original Plug-and-Play Pioneer",
+          pkg: "Historical Source",
+          kernel: "Linux 0.99",
+          logoType: "leaf"
+        },
+
+        // SPECIAL PURPOSE FAMILY (24)
+        {
+          name: "Bazzite",
+          family: "Special Purpose",
+          year: 2023,
+          description: "SteamOS clone built on Fedora Silverblue atomic ostree images. Tailored for PC gaming handhelds (Steam Deck, ROG Ally, Legion Go) and big-screen living room gaming rigs.",
+          colors: ["#ff5722", "#e64a19"],
+          tagline: "Next-Gen Gaming Handheld OS",
+          pkg: "rpm-ostree / Flatpak",
+          kernel: "Linux HDR / Handheld Patched",
+          logoType: "piston"
+        },
+        {
+          name: "Qubes OS",
+          family: "Special Purpose",
+          year: 2012,
+          description: "Security-by-compartmentalization operating system using Xen hypervisors to isolate networking, USB controllers, applications, and untrusted files into separate colored VM qubes.",
+          colors: ["#3b82f6", "#1d4ed8"],
+          tagline: "A Reasonably Secure Operating System",
+          pkg: "qubes-dom0 / RPM",
+          kernel: "Xen Microkernel + Linux",
+          logoType: "cube"
+        },
+        {
+          name: "Kodachi",
+          family: "Special Purpose",
+          year: 2013,
+          description: "Secure, anti-forensic live OS that routes all traffic through a VPN plus the Tor network with DNS crypt protection, memory wiping, and emergency panic nuke triggers.",
+          colors: ["#e11d48", "#1e1b4b"],
+          tagline: "Anti-Forensic Stealth Operating System",
+          pkg: "APT Live",
+          kernel: "Linux Hardened Live",
+          logoType: "eye"
+        },
+        {
+          name: "Tails (Amnesic)",
+          family: "Special Purpose",
+          year: 2009,
+          description: "Edward Snowden's recommended operating system: cryptographic RAM scrubbing on shutdown, forced Tor network encapsulation, and metadata anonymizing toolkits.",
+          colors: ["#56347c", "#00d2c4"],
+          tagline: "The Amnesic Incognito Live System",
+          pkg: "APT Live",
+          kernel: "Linux Amnesic",
+          logoType: "eye"
+        },
+        {
+          name: "ChromeOS Flex",
+          family: "Special Purpose",
+          year: 2022,
+          description: "Google's cloud-first operating system designed to modernize aging PC and Mac hardware into fast, secure Chromebooks running the web-first Chrome runtime.",
+          colors: ["#4285f4", "#34a853"],
+          tagline: "Cloud-First Speed and Security",
+          pkg: "Chrome / Web Container",
+          kernel: "Linux ChromeOS",
+          logoType: "circles"
+        },
+        {
+          name: "Batocera.linux",
+          family: "Special Purpose",
+          year: 2016,
+          description: "Specialized retro-gaming distribution booting straight into EmulationStation with RetroArch cores configured for thousands of arcade and classic console games.",
+          colors: ["#f97316", "#dc2626"],
+          tagline: "Plug-and-Play Retro Gaming Console",
+          pkg: "Buildroot Custom",
+          kernel: "Linux Low-Latency Audio/Video",
+          logoType: "piston"
+        },
+        {
+          name: "Recalbox",
+          family: "Special Purpose",
+          year: 2014,
+          description: "French retro-gaming platform engineered for Raspberry Pi, PC, and handhelds with plug-and-play controller pairing, online netplay, and CRT scanline shaders.",
+          colors: ["#ef4444", "#991b1b"],
+          tagline: "The French Retro Gaming Marvel",
+          pkg: "Buildroot",
+          kernel: "Linux Low-Latency",
+          logoType: "piston"
+        },
+        {
+          name: "LibreELEC",
+          family: "Special Purpose",
+          year: 2016,
+          description: "Just enough OS for Kodi: an ultra-lean JeOS (Just Enough Operating System) designed exclusively to turn home-theater PCs and TV boxes into media centers.",
+          colors: ["#0284c7", "#0369a1"],
+          tagline: "Just Enough OS for Kodi",
+          pkg: "Kodi Add-ons",
+          kernel: "Linux Media Optimized",
+          logoType: "piston"
+        },
+        {
+          name: "RetroPie",
+          family: "Special Purpose",
+          year: 2012,
+          description: "Transforms the Raspberry Pi into a dedicated retro-gaming machine, combining RetroArch, EmulationStation, and custom configuration scripts.",
+          colors: ["#dc2626", "#1e3a8a"],
+          tagline: "Classic Console Emulation on SBCs",
+          pkg: "APT / RetroPie Setup",
+          kernel: "Linux Raspberry Pi",
+          logoType: "piston"
+        },
+        {
+          name: "Lakka",
+          family: "Special Purpose",
+          year: 2014,
+          description: "The official Linux distribution of RetroArch and the Libretro ecosystem, running the PlayStation-style XMB interface directly on bare metal.",
+          colors: ["#dc2626", "#f59e0b"],
+          tagline: "The Official RetroArch Bare-Metal OS",
+          pkg: "Libretro Cores",
+          kernel: "Linux Hardkernel",
+          logoType: "piston"
+        },
+        {
+          name: "Porteus",
+          family: "Special Purpose",
+          year: 2010,
+          description: "Lightning-fast portable operating system modularized into compressed XZM modules that boots in under 15 seconds from portable flash storage.",
+          colors: ["#0284c7", "#0ea5e9"],
+          tagline: "Modular Speed from Flash Drives",
+          pkg: "XZM Modules",
+          kernel: "Linux Porteus",
+          logoType: "peak"
+        },
+        {
+          name: "Slax",
+          family: "Special Purpose",
+          year: 2002,
+          description: "Tomas Matejicek's compact pocket operating system with modular architecture that runs from USB drives with persistent storage and minimal resource overhead.",
+          colors: ["#2563eb", "#1d4ed8"],
+          tagline: "Your Pocket Operating System",
+          pkg: "APT / Modules",
+          kernel: "Linux Slax",
+          logoType: "peak"
+        },
+        {
+          name: "SystemRescue",
+          family: "Special Purpose",
+          year: 2002,
+          description: "The emergency rescue utility kit for system administrators, packing disk partitioning, file system recovery (TestDisk/PhotoRec), network diagnostics, and PXE boot.",
+          colors: ["#e11d48", "#475569"],
+          tagline: "Emergency System Repair & Forensic Swiss Knife",
+          pkg: "pacman (Arch base)",
+          kernel: "Linux Rescue LTS",
+          logoType: "shield"
+        },
+        {
+          name: "GParted Live",
+          family: "Special Purpose",
+          year: 2006,
+          description: "Bootable disk management appliance containing the official GParted partition editor, allowing safe resizing, copying, and moving of disk partitions without data loss.",
+          colors: ["#f59e0b", "#d97706"],
+          tagline: "Precision Disk Partitioning Appliance",
+          pkg: "Debian Live",
+          kernel: "Linux Storage",
+          logoType: "shield"
+        },
+        {
+          name: "TrueNAS SCALE",
+          family: "Special Purpose",
+          year: 2022,
+          description: "Open-source scale-out storage operating system integrating the OpenZFS file system, Docker containers, KVM virtualization, and enterprise clustering.",
+          colors: ["#0284c7", "#075985"],
+          tagline: "OpenZFS Enterprise Storage & Clustering",
+          pkg: "k3s / Docker / Helm",
+          kernel: "Linux OpenZFS",
+          logoType: "server"
+        },
+        {
+          name: "OpenWrt",
+          family: "Special Purpose",
+          year: 2004,
+          description: "The extensible operating system for home routers and embedded network equipment, providing full packet-filtering control, SQM bufferbloat mitigation, and WireGuard.",
+          colors: ["#00bcd4", "#0097a7"],
+          tagline: "Wireless Freedom for Router Hardware",
+          pkg: "opkg",
+          kernel: "Linux Embedded Router",
+          logoType: "server"
+        },
+        {
+          name: "VyOS",
+          family: "Special Purpose",
+          year: 2013,
+          description: "Enterprise open-source network operating system offering software-defined routing, BGP, OSPF, stateful firewalls, and multi-cloud site-to-site IPsec VPN gateways.",
+          colors: ["#059669", "#047857"],
+          tagline: "Software-Defined Enterprise Router OS",
+          pkg: "VyOS CLI / APT",
+          kernel: "Linux High-Throughput Networking",
+          logoType: "server"
+        },
+        {
+          name: "Proxmox VE",
+          family: "Special Purpose",
+          year: 2008,
+          description: "Complete open-source enterprise virtualization platform uniting KVM virtual machines, LXC containers, software-defined storage, and high-availability clustering.",
+          colors: ["#e65100", "#bf360c"],
+          tagline: "Enterprise Virtualization & Container Cluster",
+          pkg: "APT / Proxmox GUI",
+          kernel: "Proxmox Custom KVM Kernel",
+          logoType: "server"
+        },
+        {
+          name: "IPFire",
+          family: "Special Purpose",
+          year: 2005,
+          description: "Dedicated stateful firewall and Intrusion Detection System (IDS) equipped with an intuitive web manager, proxy cache, and deep packet inspection.",
+          colors: ["#dc2626", "#b91c1c"],
+          tagline: "The Hardened Open-Source Firewall",
+          pkg: "Pakfire",
+          kernel: "Hardened Security Kernel",
+          logoType: "shield"
+        },
+        {
+          name: "Clonezilla Live",
+          family: "Special Purpose",
+          year: 2007,
+          description: "Bare-metal disaster recovery and disk imaging utility that saves and restores only used storage blocks, achieving massive backup and cloning speeds.",
+          colors: ["#6366f1", "#4f46e5"],
+          tagline: "Fast Block-Level Bare Metal Imaging",
+          pkg: "DRBL Live",
+          kernel: "Linux Storage",
+          logoType: "shield"
+        },
+        {
+          name: "Knoppix",
+          family: "Special Purpose",
+          year: 2000,
+          description: "Klaus Knopper's pioneering live CD that revolutionized bootable media with legendary automatic hardware detection and hardware diagnostic toolsets.",
+          colors: ["#3b82f6", "#1d4ed8"],
+          tagline: "The Historical Pioneer of Live CD Computing",
+          pkg: "APT Live",
+          kernel: "Linux Knoppix",
+          logoType: "spiral"
+        },
+        {
+          name: "Damn Small Linux",
+          family: "Special Purpose",
+          year: 2005,
+          description: "Legendary 50MB bootable live desktop operating system revived for modern systems, proving that a complete desktop with web browser can fit on miniature media.",
+          colors: ["#e11d48", "#9f1239"],
+          tagline: "Complete Desktop in Under 50MB",
+          pkg: "MyDSL / APT",
+          kernel: "Linux Micro",
+          logoType: "peak"
+        },
+        {
+          name: "TurnKey Linux",
+          family: "Special Purpose",
+          year: 2008,
+          description: "Library of over 100 pre-integrated server appliances (WordPress, Nextcloud, GitLab) ready to deploy onto hypervisors and clouds in seconds.",
+          colors: ["#10b981", "#059669"],
+          tagline: "Instant Ready-To-Use Server Appliances",
+          pkg: "TKLBAM / APT",
+          kernel: "Debian Server",
+          logoType: "server"
+        },
+        {
+          name: "GParted OS",
+          family: "Special Purpose",
+          year: 2008,
+          description: "Dedicated partition recovery and file system optimization environment utilized by datacenters worldwide for low-level block partition alignment.",
+          colors: ["#f59e0b", "#d97706"],
+          tagline: "Low-Level Storage Alignment & Formatting",
+          pkg: "Live Storage Toolkit",
+          kernel: "Linux Storage",
+          logoType: "shield"
+        }
+      ];
+      // ==========================================
+      // PROCEDURAL SVG EMBLEM GENERATOR
+      // Dynamically crafts high-fidelity stylized vector emblems
+      // ==========================================
+      function generateDistroSvg(distro, size = 320) {
+        const c1 = distro.colors[0] || '#00f0ff';
+        const c2 = distro.colors[1] || '#8b5cf6';
+        const gradId = `grad-${distro.name.replace(/[^a-zA-Z0-9]/g, '')}-${Math.random().toString(36).substr(2, 5)}`;
+        const filterId = `glow-${distro.name.replace(/[^a-zA-Z0-9]/g, '')}-${Math.random().toString(36).substr(2, 5)}`;
+
+        let innerGraphic = '';
+        const t = distro.logoType || 'delta';
+
+        switch (t) {
+          case 'spiral':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="url(#${gradId})" stroke-width="2.5" stroke-dasharray="8 6" opacity="0.4"/>
+              <path d="M160,160 C160,120 190,90 230,100 C270,110 280,160 260,200 C240,240 180,260 140,250 C100,240 60,190 70,140 C80,90 130,50 180,50 C230,50 280,90 280,150 C280,220 220,280 150,280 C80,280 30,220 30,140 C30,60 90,10 170,10" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="9" stroke-linecap="round" filter="url(#${filterId})"/>
+              <circle cx="160" cy="160" r="14" fill="${c1}" filter="url(#${filterId})"/>
+            `;
+            break;
+
+          case 'circles':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <circle cx="160" cy="160" r="95" fill="none" stroke="url(#${gradId})" stroke-width="16" stroke-linecap="round" stroke-dasharray="140 30"/>
+              <g transform="rotate(0 160 160)"><circle cx="160" cy="55" r="18" fill="${c1}" filter="url(#${filterId})"/><path d="M160,75 L160,95" stroke="${c1}" stroke-width="4"/></g>
+              <g transform="rotate(120 160 160)"><circle cx="160" cy="55" r="18" fill="${c2}" filter="url(#${filterId})"/><path d="M160,75 L160,95" stroke="${c2}" stroke-width="4"/></g>
+              <g transform="rotate(240 160 160)"><circle cx="160" cy="55" r="18" fill="#ffffff" filter="url(#${filterId})"/><path d="M160,75 L160,95" stroke="#ffffff" stroke-width="4"/></g>
+              <circle cx="160" cy="160" r="22" fill="none" stroke="url(#${gradId})" stroke-width="4"/>
+            `;
+            break;
+
+          case 'delta':
+            innerGraphic = `
+              <polygon points="160,35 275,255 45,255" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+              <path d="M160,45 L260,245 L200,245 L175,190 L145,190 L120,245 L60,245 Z" 
+                    fill="url(#${gradId})" filter="url(#${filterId})" opacity="0.95"/>
+              <polygon points="160,110 185,170 135,170" fill="#030508"/>
+              <line x1="45" y1="265" x2="275" y2="265" stroke="${c1}" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="160" cy="45" r="6" fill="#ffffff"/>
+            `;
+            break;
+
+          case 'infinity':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+              <path d="M110,160 C80,120 40,120 40,160 C40,200 80,200 110,160 L210,160 C240,120 280,120 280,160 C280,200 240,200 210,160 Z" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" filter="url(#${filterId})"/>
+              <circle cx="75" cy="160" r="12" fill="${c1}"/>
+              <circle cx="245" cy="160" r="12" fill="${c2}"/>
+            `;
+            break;
+
+          case 'chameleon':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="135" fill="none" stroke="url(#${gradId})" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.4"/>
+              <path d="M70,190 C60,130 90,80 150,70 C220,60 270,100 270,160 C270,220 210,250 160,250 C120,250 85,230 70,190 Z" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="8" filter="url(#${filterId})"/>
+              <path d="M70,190 C50,190 35,175 35,155 C35,135 55,135 70,150" fill="none" stroke="${c1}" stroke-width="7" stroke-linecap="round"/>
+              <circle cx="205" cy="115" r="14" fill="${c1}"/>
+              <circle cx="205" cy="115" r="6" fill="#030508"/>
+              <path d="M120,180 L230,180" stroke="rgba(255,255,255,0.3)" stroke-width="4" stroke-linecap="round"/>
+            `;
+            break;
+
+          case 'claw':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+              <path d="M90,70 C160,30 250,70 260,150 C270,220 210,270 140,260 C70,250 50,180 70,130 C85,90 130,95 150,115 C175,140 160,180 135,185 C115,190 100,175 110,160" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="14" stroke-linecap="round" filter="url(#${filterId})"/>
+              <circle cx="225" cy="120" r="10" fill="#ffffff" filter="url(#${filterId})"/>
+            `;
+            break;
+
+          case 'snowflake':
+            let branches = '';
+            for (let i = 0; i < 6; i++) {
+              branches += `
+                <g transform="rotate(${i * 60} 160 160)">
+                  <line x1="160" y1="160" x2="160" y2="40" stroke="url(#${gradId})" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M160,80 L135,100 M160,80 L185,100" stroke="${c1}" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M160,55 L140,70 M160,55 L180,70" stroke="${c2}" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="160" cy="35" r="6" fill="#ffffff"/>
+                </g>
+              `;
+            }
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              ${branches}
+              <circle cx="160" cy="160" r="12" fill="${c1}" filter="url(#${filterId})"/>
+            `;
+            break;
+
+          case 'dragon':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+              <path d="M70,240 C50,170 80,100 140,65 C170,45 220,40 250,70 C270,90 260,130 220,140 C170,150 140,120 120,150 C100,180 120,230 180,240 C220,245 250,220 260,200" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="9" stroke-linecap="round" filter="url(#${filterId})"/>
+              <polygon points="140,65 170,55 155,80" fill="${c2}"/>
+              <polygon points="210,140 240,135 225,160" fill="${c1}"/>
+              <circle cx="230" cy="80" r="8" fill="#ffffff"/>
+            `;
+            break;
+
+          case 'leaf':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="url(#${gradId})" stroke-width="2" opacity="0.3"/>
+              <path d="M80,240 C80,140 140,70 240,60 C240,160 180,230 80,240 Z" 
+                    fill="url(#${gradId})" filter="url(#${filterId})" opacity="0.85"/>
+              <path d="M80,240 Q150,160 240,60" stroke="#030508" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="240" cy="60" r="8" fill="#ffffff"/>
+            `;
+            break;
+
+          case 'shield':
+            innerGraphic = `
+              <path d="M70,70 L250,70 C250,170 200,240 160,265 C120,240 70,170 70,70 Z" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="9" stroke-linejoin="round" filter="url(#${filterId})"/>
+              <path d="M160,85 L160,245" stroke="${c2}" stroke-width="3" stroke-dasharray="6 6"/>
+              <polygon points="160,105 220,135 220,175 160,215 100,175 100,135" fill="none" stroke="${c1}" stroke-width="4"/>
+              <circle cx="160" cy="160" r="14" fill="${c1}" filter="url(#${filterId})"/>
+            `;
+            break;
+
+          case 'cube':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+              <g transform="translate(160, 160) scale(1.1) translate(-160, -160)">
+                <!-- Isometric Cube -->
+                <polygon points="160,70 230,110 160,150 90,110" fill="url(#${gradId})" opacity="0.85"/>
+                <polygon points="90,110 160,150 160,235 90,195" fill="${c2}" opacity="0.6"/>
+                <polygon points="230,110 160,150 160,235 230,195" fill="${c1}" opacity="0.45"/>
+                <polygon points="160,70 230,110 230,195 160,235 90,195 90,110" fill="none" stroke="#ffffff" stroke-width="3"/>
+              </g>
+            `;
+            break;
+
+          case 'peak':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <polygon points="160,70 250,230 70,230" fill="none" stroke="url(#${gradId})" stroke-width="8" stroke-linejoin="round" filter="url(#${filterId})"/>
+              <polygon points="160,70 195,135 125,135" fill="#ffffff" opacity="0.9"/>
+              <polygon points="210,130 270,230 150,230" fill="none" stroke="${c2}" stroke-width="4" opacity="0.5"/>
+              <line x1="50" y1="240" x2="270" y2="240" stroke="${c1}" stroke-width="4" stroke-linecap="round"/>
+            `;
+            break;
+
+          case 'piston':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <circle cx="160" cy="160" r="85" fill="none" stroke="url(#${gradId})" stroke-width="12" filter="url(#${filterId})"/>
+              <circle cx="160" cy="160" r="40" fill="none" stroke="${c1}" stroke-width="5"/>
+              <circle cx="160" cy="160" r="18" fill="#ffffff"/>
+              <rect x="152" y="45" width="16" height="45" rx="4" fill="${c2}"/>
+              <rect x="152" y="230" width="16" height="45" rx="4" fill="${c2}"/>
+              <rect x="45" y="152" width="45" height="16" rx="4" fill="${c2}"/>
+              <rect x="230" y="152" width="45" height="16" rx="4" fill="${c2}"/>
+            `;
+            break;
+
+          case 'void':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="url(#${gradId})" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+              <circle cx="160" cy="160" r="100" fill="none" stroke="url(#${gradId})" stroke-width="16" filter="url(#${filterId})"/>
+              <circle cx="160" cy="160" r="60" fill="#030508"/>
+              <circle cx="160" cy="160" r="28" fill="${c1}" filter="url(#${filterId})"/>
+              <circle cx="160" cy="160" r="8" fill="#ffffff"/>
+            `;
+            break;
+
+          case 'pipe':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <path d="M70,160 Q110,90 190,90 L240,90 C250,90 255,100 250,110 L230,150 C225,160 215,165 200,165 L150,165 C130,165 110,185 110,210 C110,230 125,245 150,245 L240,245" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#${filterId})"/>
+              <circle cx="240" cy="90" r="8" fill="#ffffff"/>
+              <circle cx="240" cy="245" r="8" fill="${c1}"/>
+            `;
+            break;
+
+          case 'eye':
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+              <path d="M50,160 C90,85 230,85 270,160 C230,235 90,235 50,160 Z" 
+                    fill="none" stroke="url(#${gradId})" stroke-width="8" filter="url(#${filterId})"/>
+              <circle cx="160" cy="160" r="45" fill="none" stroke="${c2}" stroke-width="5"/>
+              <circle cx="160" cy="160" r="22" fill="${c1}" filter="url(#${filterId})"/>
+              <circle cx="170" cy="150" r="6" fill="#ffffff"/>
+            `;
+            break;
+
+          case 'server':
+          default:
+            innerGraphic = `
+              <circle cx="160" cy="160" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+              <rect x="75" y="80" width="170" height="40" rx="4" fill="none" stroke="url(#${gradId})" stroke-width="4"/>
+              <circle cx="105" cy="100" r="6" fill="${c1}" filter="url(#${filterId})"/>
+              <circle cx="125" cy="100" r="4" fill="#ffffff"/>
+              <rect x="75" y="140" width="170" height="40" rx="4" fill="none" stroke="url(#${gradId})" stroke-width="4"/>
+              <circle cx="105" cy="160" r="6" fill="${c2}" filter="url(#${filterId})"/>
+              <circle cx="125" cy="160" r="4" fill="#ffffff"/>
+              <rect x="75" y="200" width="170" height="40" rx="4" fill="none" stroke="url(#${gradId})" stroke-width="4"/>
+              <circle cx="105" cy="220" r="6" fill="${c1}" filter="url(#${filterId})"/>
+              <circle cx="125" cy="220" r="4" fill="#ffffff"/>
+            `;
+            break;
+        }
+
+        return `
+          <svg viewBox="0 0 320 320" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${c1}" />
+                <stop offset="100%" stop-color="${c2}" />
+              </linearGradient>
+              <filter id="${filterId}" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            ${innerGraphic}
+          </svg>
+        `;
+      }
+
+      // ==========================================
+      // SYNTHESIZED WEB AUDIO ENGINE
+      // Ultra-clean procedural sound synthesis
+      // ==========================================
+      class AudioEngine {
+        constructor() {
+          this.ctx = null;
+          this.enabled = false;
+        }
+
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        toggle() {
+          this.init();
+          this.enabled = !this.enabled;
+          return this.enabled;
+        }
+
+        playTick(pitch = 880) {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(pitch, now);
+            osc.frequency.exponentialRampToValueAtTime(140, now + 0.025);
+
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.03);
+          } catch(e) {}
+        }
+
+        playWarp() {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(840, now + 0.35);
+
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(0.12, now + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.45);
+          } catch(e) {}
+        }
+
+        playWinChime() {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const freqs = [440, 554.37, 659.25, 880];
+            freqs.forEach((f, idx) => {
+              const now = this.ctx.currentTime + (idx * 0.08);
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(f, now);
+
+              gain.gain.setValueAtTime(0.09, now);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+
+              osc.start(now);
+              osc.stop(now + 0.65);
+            });
+          } catch(e) {}
+        }
+      }
+
+      const audio = new AudioEngine();
+
+      // Audio Toggle Button handler
+      const audioBtn = document.getElementById('audio-toggle');
+      if (audioBtn) {
+        audioBtn.addEventListener('click', () => {
+          const isEnabled = audio.toggle();
+          audioBtn.textContent = isEnabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+          audioBtn.style.borderColor = isEnabled ? '#00f0ff' : 'rgba(0, 240, 255, 0.3)';
+          audioBtn.style.background = isEnabled ? 'rgba(0, 240, 255, 0.2)' : 'rgba(0, 240, 255, 0.05)';
+        });
+      }
+
+      // ==========================================
+      // STARFIELD PARTICLE CANVAS ENGINE
+      // Multi-depth starry cosmos with parallax & velocity stretch
+      // ==========================================
+      const starCanvas = document.getElementById('star-canvas');
+      const starCtx = starCanvas.getContext('2d');
+      let stars = [];
+      const STAR_COUNT = window.innerWidth < 768 ? 240 : 540;
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      let targetMouseX = mouseX;
+      let targetMouseY = mouseY;
+      let lastScrollY = window.scrollY;
+      let scrollVel = 0;
+
+      function resizeStarCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        starCanvas.width = window.innerWidth * dpr;
+        starCanvas.height = window.innerHeight * dpr;
+        starCtx.scale(dpr, dpr);
+      }
+
+      function initStars() {
+        stars = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+          stars.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            z: Math.random() * 3 + 0.5, // depth layer
+            radius: Math.random() * 1.4 + 0.3,
+            baseAlpha: Math.random() * 0.7 + 0.2,
+            twinkleSpeed: Math.random() * 0.02 + 0.005,
+            twinklePhase: Math.random() * Math.PI * 2,
+            hue: Math.random() > 0.85 ? 190 : (Math.random() > 0.7 ? 280 : 0) // cyan, violet, or pure white
+          });
+        }
+      }
+
+      window.addEventListener('resize', () => {
+        resizeStarCanvas();
+        initStars();
+      });
+      resizeStarCanvas();
+      initStars();
+
+      window.addEventListener('mousemove', (e) => {
+        targetMouseX = e.clientX;
+        targetMouseY = e.clientY;
+      });
+
+      window.addEventListener('scroll', () => {
+        const currentY = window.scrollY;
+        scrollVel = (currentY - lastScrollY) * 0.35;
+        lastScrollY = currentY;
+      }, { passive: true });
+
+      function renderStarfield() {
+        // Smooth mouse interpolation
+        mouseX += (targetMouseX - mouseX) * 0.05;
+        mouseY += (targetMouseY - mouseY) * 0.05;
+
+        // Dampen scroll velocity
+        scrollVel *= 0.92;
+
+        starCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const offsetX = (mouseX - centerX) * 0.015;
+        const offsetY = (mouseY - centerY) * 0.015;
+
+        const stretch = Math.max(1, Math.min(6, Math.abs(scrollVel) * 0.4));
+        const stretchDir = scrollVel >= 0 ? 1 : -1;
+
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
+          s.twinklePhase += s.twinkleSpeed;
+          const currentAlpha = s.baseAlpha + Math.sin(s.twinklePhase) * 0.2;
+
+          // Parallax position based on depth
+          let renderX = s.x - (offsetX * s.z);
+          let renderY = s.y - (offsetY * s.z) - (scrollVel * s.z * 0.2);
+
+          // Wrap around screen boundaries
+          if (renderX < 0) renderX += window.innerWidth;
+          if (renderX > window.innerWidth) renderX -= window.innerWidth;
+          if (renderY < 0) renderY += window.innerHeight;
+          if (renderY > window.innerHeight) renderY -= window.innerHeight;
+
+          starCtx.beginPath();
+          if (s.hue === 190) {
+            starCtx.fillStyle = `rgba(0, 240, 255, ${Math.max(0.1, currentAlpha)})`;
+          } else if (s.hue === 280) {
+            starCtx.fillStyle = `rgba(168, 85, 247, ${Math.max(0.1, currentAlpha)})`;
+          } else {
+            starCtx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, currentAlpha)})`;
+          }
+
+          if (stretch > 1.2) {
+            // Stretch stars during fast scrolling for warp effect
+            starCtx.ellipse(renderX, renderY, s.radius, s.radius * stretch, 0, 0, Math.PI * 2);
+          } else {
+            starCtx.arc(renderX, renderY, s.radius * s.z * 0.7, 0, Math.PI * 2);
+          }
+          starCtx.fill();
+        }
+
+        requestAnimationFrame(renderStarfield);
+      }
+      requestAnimationFrame(renderStarfield);
+
+      // ==========================================
+      // PROCEDURAL FILM GRAIN ENGINE
+      // Ultra-subtle cinematic grain overlay
+      // ==========================================
+      const grainCanvas = document.getElementById('grain-canvas');
+      const grainCtx = grainCanvas.getContext('2d');
+
+      function resizeGrain() {
+        grainCanvas.width = 256;
+        grainCanvas.height = 256;
+      }
+      resizeGrain();
+
+      function generateGrain() {
+        const imgData = grainCtx.createImageData(256, 256);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const val = Math.random() * 255;
+          data[i] = val;
+          data[i + 1] = val;
+          data[i + 2] = val;
+          data[i + 3] = 30; // very low opacity
+        }
+        grainCtx.putImageData(imgData, 0, 0);
+      }
+      // Re-generate grain every few frames for film vibration
+      setInterval(generateGrain, 90);
+
+      // ==========================================
+      // DISTRO SHOWCASE DOM BUILDER & OBSERVER
+      // Builds immersive viewports and cinematic gates
+      // ==========================================
+      const sectorsContainer = document.getElementById('sectors-container');
+      const familyOrder = ['debian', 'redhat', 'arch', 'suse', 'independent', 'special'];
+
+      function renderDistroSectors() {
+        let globalIndex = 0;
+        let htmlBuffer = '';
+
+        familyOrder.forEach((famKey) => {
+          const fam = FAMILIES[famKey];
+          const distrosInFam = DISTRO_DATA.filter(d => d.family.toLowerCase().includes(famKey) || 
+            (famKey === 'special' && d.family.toLowerCase().includes('special')) ||
+            (famKey === 'independent' && d.family.toLowerCase().includes('independent'))
+          );
+
+          // Sector Chapter Gate
+          htmlBuffer += `
+            <div class="chapter-gate" id="sector-${fam.id}" data-family="${fam.name}">
+              <div class="chapter-num" style="color: ${fam.primaryColor};">${fam.code}</div>
+              <div class="chapter-kicker" style="color: ${fam.secondaryColor};">${fam.kicker}</div>
+              <h2 class="chapter-name">${fam.name}</h2>
+              <p class="chapter-desc">${fam.desc}</p>
+              <div style="margin-top: 2rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #64748b;">
+                EXPLORING ${distrosInFam.length} CELESTIAL DISTRIBUTIONS
+              </div>
+            </div>
+          `;
+
+          // Distro Viewports
+          distrosInFam.forEach((distro) => {
+            const currentIdx = globalIndex++;
+            const paddedNum = String(currentIdx + 1).padStart(3, '0');
+            const totalCount = DISTRO_DATA.length;
+            const primary = distro.colors[0];
+            const secondary = distro.colors[1];
+
+            htmlBuffer += `
+              <section class="distro-section" id="distro-${currentIdx}" data-index="${currentIdx}" data-family="${distro.family}" data-color="${primary}">
+                <div class="distro-grid">
+                  <!-- Visual Emblem -->
+                  <div class="distro-visual">
+                    <div class="distro-emblem-wrap">
+                      <div class="distro-halo" style="background: radial-gradient(circle, ${primary} 0%, ${secondary} 70%);"></div>
+                      <div class="distro-svg-container">
+                        ${generateDistroSvg(distro, 340)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Distro Editorial Details -->
+                  <div class="distro-details">
+                    <div class="distro-meta-top">
+                      <span class="distro-index">${paddedNum} / ${totalCount}</span>
+                      <span class="distro-badge" style="border-color: ${primary}; color: ${primary};">${distro.family}</span>
+                      <span style="color: #64748b;">EST. ${distro.year}</span>
+                    </div>
+
+                    <h3 class="distro-name">${distro.name}</h3>
+                    <div class="distro-tagline" style="color: ${secondary};">${distro.tagline || ''}</div>
+                    <p class="distro-desc">${distro.description}</p>
+
+                    <div class="distro-specs">
+                      <div class="spec-item">
+                        <span class="spec-label">Package System</span>
+                        <span class="spec-val">${distro.pkg || 'Native'}</span>
+                      </div>
+                      <div class="spec-item">
+                        <span class="spec-label">Kernel Architecture</span>
+                        <span class="spec-val">${distro.kernel || 'Linux Kernel'}</span>
+                      </div>
+                      <div class="spec-item">
+                        <span class="spec-label">Cosmic Heritage</span>
+                        <span class="spec-val">${distro.family}</span>
+                      </div>
+                    </div>
+
+                    <div class="distro-actions">
+                      <button class="btn-target" onclick="warpToOracleDistro(${currentIdx})" aria-label="Inspect ${distro.name} in Oracle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+                        <span>Target in Oracle</span>
+                      </button>
+                      <button class="btn-target" onclick="copyDistroCoordinates('${distro.name}')" aria-label="Copy Distro Coordinates">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        <span>Share Coordinates</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            `;
+          });
+        });
+
+        sectorsContainer.innerHTML = htmlBuffer;
+      }
+      renderDistroSectors();
+
+      // ==========================================
+      // HUD & NEBULA REAL-TIME OBSERVER
+      // ==========================================
+      const hudSectorName = document.getElementById('hud-sector-name');
+      const hudGlow = document.getElementById('hud-glow');
+      const hudCounter = document.getElementById('hud-counter');
+      const progressBar = document.getElementById('progress-bar');
+      const nebulaGlow = document.getElementById('nebula-glow');
+
+      // Scroll progress tracking
+      window.addEventListener('scroll', () => {
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100));
+        progressBar.style.width = `${progress}%`;
+      }, { passive: true });
+
+      // IntersectionObserver for active distro
+      const distroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const idx = parseInt(entry.target.getAttribute('data-index'), 10);
+            const fam = entry.target.getAttribute('data-family');
+            const color = entry.target.getAttribute('data-color') || '#00f0ff';
+
+            if (!isNaN(idx)) {
+              hudCounter.textContent = `${String(idx + 1).padStart(3, '0')} / ${DISTRO_DATA.length}`;
+              hudSectorName.textContent = `${fam.toUpperCase()} FAMILY`;
+              hudGlow.style.background = color;
+              hudGlow.style.boxShadow = `0 0 10px ${color}`;
+
+              // Dynamic nebula shift
+              nebulaGlow.style.background = `radial-gradient(circle at 60% 40%, ${color}22 0%, transparent 65%)`;
+            }
+          }
+        });
+      }, {
+        threshold: 0.45
+      });
+
+      document.querySelectorAll('.distro-section').forEach(el => distroObserver.observe(el));
+
+      // Observe chapter gates
+      const gateObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const fam = entry.target.getAttribute('data-family');
+            if (fam) {
+              hudSectorName.textContent = `ENTERING ${fam.toUpperCase()}`;
+            }
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll('.chapter-gate').forEach(el => gateObserver.observe(el));
+
+      // ==========================================
+      // HERO 3D CHARACTER KINETIC ANIMATION
+      // ==========================================
+      function initHeroAnimation() {
+        const heroTitle = document.getElementById('hero-title');
+        const lines = heroTitle.querySelectorAll('span.line-1, span.line-2');
+
+        lines.forEach(line => {
+          const text = line.textContent.trim();
+          line.innerHTML = '';
+          text.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.className = 'char';
+            span.textContent = char === ' ' ? '\u00A0' : char;
+            line.appendChild(span);
+          });
+        });
+
+        if (window.gsap) {
+          const chars = heroTitle.querySelectorAll('.char');
+          gsap.set(chars, {
+            opacity: 0,
+            z: -450,
+            rotationX: () => (Math.random() - 0.5) * 120,
+            rotationY: () => (Math.random() - 0.5) * 120,
+            filter: 'blur(16px)'
+          });
+
+          const tl = gsap.timeline({ delay: 0.2 });
+          tl.to('.hero-kicker', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' })
+            .to(chars, {
+              opacity: 1,
+              z: 0,
+              rotationX: 0,
+              rotationY: 0,
+              filter: 'blur(0px)',
+              duration: 1.4,
+              stagger: {
+                each: 0.035,
+                from: 'random'
+              },
+              ease: 'expo.out'
+            }, '-=0.5')
+            .to('.hero-subtitle', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.8');
+
+          // Gentle floating motion
+          gsap.to(heroTitle, {
+            y: -10,
+            duration: 3.5,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          });
+        }
+      }
+      initHeroAnimation();
+
+      // ==========================================
+      // EDITORIAL INTRO WORD-BY-WORD ANIMATION
+      // ==========================================
+      function initIntroAnimation() {
+        const quote = document.getElementById('intro-quote');
+        const rawText = quote.textContent.trim();
+        quote.innerHTML = '';
+
+        rawText.split(' ').forEach((w) => {
+          const span = document.createElement('span');
+          span.className = 'word';
+          span.textContent = w + ' ';
+          quote.appendChild(span);
+        });
+
+        const words = quote.querySelectorAll('.word');
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              words.forEach((w, i) => {
+                setTimeout(() => {
+                  w.classList.add('active');
+                }, i * 45);
+              });
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.25 });
+
+        observer.observe(quote);
+      }
+      initIntroAnimation();
+
+      // ==========================================
+      // INTERACTIVE CONSTELLATION GALAXY MAP
+      // Canvas celestial cartography connecting all distros
+      // ==========================================
+      const galaxyCanvas = document.getElementById('galaxy-canvas');
+      const galaxyCtx = galaxyCanvas.getContext('2d');
+      const galaxyTooltip = document.getElementById('galaxy-tooltip');
+      const filterContainer = document.getElementById('constellation-filters');
+      let galaxyStars = [];
+      let activeFilter = 'all';
+      let hoveredStar = null;
+
+      function resizeGalaxyCanvas() {
+        const wrap = galaxyCanvas.parentElement;
+        const rect = wrap.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        galaxyCanvas.width = rect.width * dpr;
+        galaxyCanvas.height = rect.height * dpr;
+        galaxyCtx.scale(dpr, dpr);
+        buildGalaxyMap(rect.width, rect.height);
+      }
+
+      function buildGalaxyMap(w, h) {
+        galaxyStars = [];
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const radiusMax = Math.min(w, h) * 0.42;
+
+        // Map the 6 families into 6 cosmic spiral sectors
+        const famAngles = {
+          'debian': 0,
+          'redhat': Math.PI / 3,
+          'arch': (2 * Math.PI) / 3,
+          'suse': Math.PI,
+          'independent': (4 * Math.PI) / 3,
+          'special': (5 * Math.PI) / 3
+        };
+
+        DISTRO_DATA.forEach((distro, i) => {
+          let famKey = 'independent';
+          const famLower = distro.family.toLowerCase();
+          if (famLower.includes('debian')) famKey = 'debian';
+          else if (famLower.includes('red hat')) famKey = 'redhat';
+          else if (famLower.includes('arch')) famKey = 'arch';
+          else if (famLower.includes('suse')) famKey = 'suse';
+          else if (famLower.includes('special')) famKey = 'special';
+
+          const baseAngle = famAngles[famKey];
+          // Spiral scatter within the family's cosmic cluster
+          const clusterProgress = (i % 25) / 25;
+          const angle = baseAngle + (clusterProgress * 0.7 - 0.35) + (Math.random() - 0.5) * 0.2;
+          const dist = 60 + Math.pow(Math.random(), 0.8) * (radiusMax - 60);
+
+          galaxyStars.push({
+            index: i,
+            distro: distro,
+            famKey: famKey,
+            x: centerX + Math.cos(angle) * dist,
+            y: centerY + Math.sin(angle) * dist,
+            baseRadius: 3.5,
+            color: distro.colors[0],
+            secondary: distro.colors[1],
+            pulsePhase: Math.random() * Math.PI * 2
+          });
+        });
+      }
+
+      function renderGalaxy() {
+        const rect = galaxyCanvas.parentElement.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+
+        galaxyCtx.clearRect(0, 0, w, h);
+
+        // Draw orbital reference rings
+        const cx = w / 2;
+        const cy = h / 2;
+        galaxyCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        galaxyCtx.lineWidth = 1;
+        [80, 160, 240, 320].forEach(r => {
+          galaxyCtx.beginPath();
+          galaxyCtx.arc(cx, cy, r, 0, Math.PI * 2);
+          galaxyCtx.stroke();
+        });
+
+        // Draw constellation lines between nearby stars of same family
+        for (let i = 0; i < galaxyStars.length; i++) {
+          const s1 = galaxyStars[i];
+          if (activeFilter !== 'all' && s1.famKey !== activeFilter) continue;
+
+          for (let j = i + 1; j < galaxyStars.length; j++) {
+            const s2 = galaxyStars[j];
+            if (s1.famKey === s2.famKey) {
+              const dx = s1.x - s2.x;
+              const dy = s1.y - s2.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < 65) {
+                galaxyCtx.beginPath();
+                galaxyCtx.strokeStyle = s1.color + '22'; // 14% opacity
+                galaxyCtx.lineWidth = 1;
+                galaxyCtx.moveTo(s1.x, s1.y);
+                galaxyCtx.lineTo(s2.x, s2.y);
+                galaxyCtx.stroke();
+              }
+            }
+          }
+        }
+
+        // Draw star nodes
+        for (let i = 0; i < galaxyStars.length; i++) {
+          const s = galaxyStars[i];
+          const isDimmed = activeFilter !== 'all' && s.famKey !== activeFilter;
+          const isHovered = hoveredStar === s;
+
+          s.pulsePhase += 0.03;
+          let r = s.baseRadius + Math.sin(s.pulsePhase) * 0.8;
+          let alpha = isDimmed ? 0.15 : 0.85;
+
+          if (isHovered) {
+            r = 7.5;
+            alpha = 1;
+
+            // Target corona
+            galaxyCtx.beginPath();
+            galaxyCtx.arc(s.x, s.y, 16, 0, Math.PI * 2);
+            galaxyCtx.strokeStyle = '#00f0ff';
+            galaxyCtx.lineWidth = 1.5;
+            galaxyCtx.setLineDash([4, 4]);
+            galaxyCtx.stroke();
+            galaxyCtx.setLineDash([]);
+          }
+
+          // Glow
+          galaxyCtx.beginPath();
+          galaxyCtx.arc(s.x, s.y, r * 2.2, 0, Math.PI * 2);
+          galaxyCtx.fillStyle = s.color + (isHovered ? '66' : '22');
+          galaxyCtx.fill();
+
+          // Core
+          galaxyCtx.beginPath();
+          galaxyCtx.arc(s.x, s.y, r, 0, Math.PI * 2);
+          galaxyCtx.fillStyle = isHovered ? '#ffffff' : s.color;
+          galaxyCtx.globalAlpha = alpha;
+          galaxyCtx.fill();
+          galaxyCtx.globalAlpha = 1;
+        }
+
+        requestAnimationFrame(renderGalaxy);
+      }
+
+      // Constellation filter buttons
+      const filterCategories = [
+        { id: 'all', label: 'ALL FAMILIES (128)' },
+        { id: 'debian', label: 'DEBIAN' },
+        { id: 'redhat', label: 'RED HAT' },
+        { id: 'arch', label: 'ARCH' },
+        { id: 'suse', label: 'SUSE' },
+        { id: 'independent', label: 'INDEPENDENT' },
+        { id: 'special', label: 'SPECIAL PURPOSE' }
+      ];
+
+      filterCategories.forEach((fc, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `filter-pill ${idx === 0 ? 'active' : ''}`;
+        btn.textContent = fc.label;
+        btn.onclick = () => {
+          activeFilter = fc.id;
+          document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          audio.playTick(600);
+        };
+        filterContainer.appendChild(btn);
+      });
+
+      // Canvas hover & click detection
+      galaxyCanvas.addEventListener('mousemove', (e) => {
+        const rect = galaxyCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        let closest = null;
+        let minD = 22;
+
+        for (let i = 0; i < galaxyStars.length; i++) {
+          const s = galaxyStars[i];
+          if (activeFilter !== 'all' && s.famKey !== activeFilter) continue;
+          const dx = s.x - mouseX;
+          const dy = s.y - mouseY;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < minD) {
+            minD = d;
+            closest = s;
+          }
+        }
+
+        if (closest !== hoveredStar) {
+          hoveredStar = closest;
+          if (hoveredStar) {
+            audio.playTick(1100);
+            galaxyTooltip.style.opacity = '1';
+            galaxyTooltip.style.left = `${hoveredStar.x}px`;
+            galaxyTooltip.style.top = `${hoveredStar.y}px`;
+            galaxyTooltip.innerHTML = `
+              <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: #ffffff;">${hoveredStar.distro.name}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: ${hoveredStar.color}; margin-top: 0.2rem;">${hoveredStar.distro.family.toUpperCase()} · ${hoveredStar.distro.year}</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem;">Click star to warp to orbit</div>
+            `;
+          } else {
+            galaxyTooltip.style.opacity = '0';
+          }
+        }
+      });
+
+      galaxyCanvas.addEventListener('mouseleave', () => {
+        hoveredStar = null;
+        galaxyTooltip.style.opacity = '0';
+      });
+
+      galaxyCanvas.addEventListener('click', () => {
+        if (hoveredStar) {
+          warpToDistro(hoveredStar.index);
+        }
+      });
+
+      window.addEventListener('resize', resizeGalaxyCanvas);
+      resizeGalaxyCanvas();
+      requestAnimationFrame(renderGalaxy);
+
+      // ==========================================
+      // THE DISTRO ORACLE WHEEL ENGINE
+      // Deterministic physical wheel simulation
+      // ==========================================
+      const wheelCanvas = document.getElementById('wheel-canvas');
+      const wheelCtx = wheelCanvas.getContext('2d');
+      const spinBtn = document.getElementById('spin-btn');
+      const wheelPointer = document.querySelector('.wheel-pointer');
+      const resultModal = document.getElementById('oracle-result-modal');
+      const modalEmblem = document.getElementById('modal-emblem');
+      const modalTitle = document.getElementById('modal-title');
+      const modalMeta = document.getElementById('modal-meta');
+      const modalDesc = document.getElementById('modal-desc');
+      const modalHow = document.getElementById('modal-how');
+      const modalCloseBtn = document.getElementById('modal-close-btn');
+      const modalJumpBtn = document.getElementById('modal-jump-btn');
+      const historyList = document.getElementById('history-list');
+      const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+      const TOTAL_SEGMENTS = DISTRO_DATA.length;
+      const SEG_ANGLE = (2 * Math.PI) / TOTAL_SEGMENTS;
+      let currentWheelAngle = 0;
+      let isSpinning = false;
+      let lastCrossedIndex = -1;
+      let winningDistro = null;
+
+      function renderWheel(angle = 0) {
+        const size = wheelCanvas.width;
+        const center = size / 2;
+        const radius = center - 15;
+
+        wheelCtx.clearRect(0, 0, size, size);
+
+        wheelCtx.save();
+        wheelCtx.translate(center, center);
+        wheelCtx.rotate(angle);
+
+        for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+          const distro = DISTRO_DATA[i];
+          const segStart = i * SEG_ANGLE;
+          const segEnd = segStart + SEG_ANGLE;
+
+          // Segment fill
+          wheelCtx.beginPath();
+          wheelCtx.moveTo(0, 0);
+          wheelCtx.arc(0, 0, radius, segStart, segEnd);
+          wheelCtx.closePath();
+
+          // Alternating colors with family tone
+          const primary = distro.colors[0];
+          wheelCtx.fillStyle = (i % 2 === 0) ? primary : `${primary}dd`;
+          wheelCtx.fill();
+
+          wheelCtx.strokeStyle = 'rgba(3, 5, 8, 0.4)';
+          wheelCtx.lineWidth = 1;
+          wheelCtx.stroke();
+
+          // Radial Text (Short label)
+          wheelCtx.save();
+          wheelCtx.rotate(segStart + SEG_ANGLE / 2);
+          wheelCtx.textAlign = 'right';
+          wheelCtx.fillStyle = '#ffffff';
+          wheelCtx.font = 'bold 11px "JetBrains Mono", monospace';
+          wheelCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+          wheelCtx.shadowBlur = 4;
+          
+          const maxNameLen = 14;
+          const label = distro.name.length > maxNameLen ? distro.name.substring(0, maxNameLen) + '…' : distro.name;
+          wheelCtx.fillText(label, radius - 20, 4);
+          wheelCtx.restore();
+        }
+
+        // Outer glow rim
+        wheelCtx.beginPath();
+        wheelCtx.arc(0, 0, radius, 0, Math.PI * 2);
+        wheelCtx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+        wheelCtx.lineWidth = 6;
+        wheelCtx.stroke();
+
+        // Inner hub cutout
+        wheelCtx.beginPath();
+        wheelCtx.arc(0, 0, 85, 0, Math.PI * 2);
+        wheelCtx.fillStyle = '#030508';
+        wheelCtx.fill();
+        wheelCtx.strokeStyle = '#00f0ff';
+        wheelCtx.lineWidth = 3;
+        wheelCtx.stroke();
+
+        wheelCtx.restore();
+      }
+      renderWheel(0);
+
+      // Spin physics simulation
+      function spinOracle() {
+        if (isSpinning) return;
+        isSpinning = true;
+        spinBtn.disabled = true;
+
+        // Choose genuinely random target index from the entire dataset
+        const targetIndex = Math.floor(Math.random() * TOTAL_SEGMENTS);
+        winningDistro = DISTRO_DATA[targetIndex];
+
+        // Top pointer is at -PI / 2
+        // We calculate final destination angle such that segment targetIndex is centered at -PI / 2
+        const spins = 7 + Math.floor(Math.random() * 3); // 7 to 9 full revolutions
+        const baseTarget = (-Math.PI / 2) - ((targetIndex + 0.5) * SEG_ANGLE);
+        
+        // Ensure angle always rotates forward from current angle
+        let finalAngle = baseTarget;
+        while (finalAngle < currentWheelAngle + (spins * 2 * Math.PI)) {
+          finalAngle += 2 * Math.PI;
+        }
+
+        // Add a slight controlled overshoot & bounce back
+        const overshootAngle = finalAngle + 0.08;
+        const startTime = performance.now();
+        const duration = 5200; // ms
+
+        audio.init();
+
+        function animateWheel(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(1, elapsed / duration);
+
+          // Custom ease-out curve with subtle rebound at end
+          let t = progress;
+          let currentTarget;
+          
+          if (t < 0.92) {
+            // Cubic ease out to overshoot
+            const normT = t / 0.92;
+            const ease = 1 - Math.pow(1 - normT, 3.5);
+            currentTarget = currentWheelAngle + (overshootAngle - currentWheelAngle) * ease;
+          } else {
+            // Rebound back to exact final target
+            const reboundT = (t - 0.92) / 0.08;
+            const easeRebound = 1 - Math.pow(1 - reboundT, 2);
+            currentTarget = overshootAngle + (finalAngle - overshootAngle) * easeRebound;
+          }
+
+          renderWheel(currentTarget);
+
+          // Calculate current pointed segment to trigger pointer tick
+          const normalized = (((-Math.PI / 2 - (currentTarget % (2 * Math.PI))) + 4 * Math.PI) % (2 * Math.PI));
+          const currentPointed = Math.floor(normalized / SEG_ANGLE) % TOTAL_SEGMENTS;
+
+          if (currentPointed !== lastCrossedIndex) {
+            lastCrossedIndex = currentPointed;
+            audio.playTick(950 + Math.random() * 200);
+
+            // Pointer deflection twitch
+            wheelPointer.style.transform = 'translateX(-50%) rotate(-16deg)';
+            setTimeout(() => {
+              wheelPointer.style.transform = 'translateX(-50%) rotate(0deg)';
+            }, 55);
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(animateWheel);
+          } else {
+            currentWheelAngle = finalAngle;
+            renderWheel(currentWheelAngle);
+            isSpinning = false;
+            spinBtn.disabled = false;
+
+            // Trigger victory celebration
+            setTimeout(() => {
+              showOracleVictory(winningDistro, targetIndex);
+            }, 300);
+          }
+        }
+
+        requestAnimationFrame(animateWheel);
+      }
+
+      spinBtn.addEventListener('click', spinOracle);
+
+      // ==========================================
+      // CONFETTI CANVAS PARTICLES
+      // Dynamic celebratory explosion in distro colors
+      // ==========================================
+      const confettiCanvas = document.getElementById('confetti-canvas');
+      const confettiCtx = confettiCanvas.getContext('2d');
+      let confettiParticles = [];
+      let confettiAnimationId = null;
+
+      function resizeConfetti() {
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
+      }
+      resizeConfetti();
+      window.addEventListener('resize', resizeConfetti);
+
+      function launchConfetti(color1, color2) {
+        confettiParticles = [];
+        const colors = [color1, color2, '#00f0ff', '#ffffff', '#ffd166'];
+        const count = window.innerWidth < 768 ? 90 : 160;
+
+        for (let i = 0; i < count; i++) {
+          confettiParticles.push({
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2 - 40,
+            vx: (Math.random() - 0.5) * 24,
+            vy: (Math.random() - 0.75) * 22,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rSpeed: (Math.random() - 0.5) * 12,
+            gravity: 0.42,
+            drag: 0.96,
+            alpha: 1
+          });
+        }
+
+        if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+        renderConfetti();
+      }
+
+      function renderConfetti() {
+        confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        let activeCount = 0;
+
+        for (let i = 0; i < confettiParticles.length; i++) {
+          const p = confettiParticles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= p.drag;
+          p.vy *= p.drag;
+          p.rotation += p.rSpeed;
+          p.alpha -= 0.007;
+
+          if (p.alpha > 0) {
+            activeCount++;
+            confettiCtx.save();
+            confettiCtx.translate(p.x, p.y);
+            confettiCtx.rotate((p.rotation * Math.PI) / 180);
+            confettiCtx.fillStyle = p.color;
+            confettiCtx.globalAlpha = Math.max(0, p.alpha);
+            confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+            confettiCtx.restore();
+          }
+        }
+
+        if (activeCount > 0) {
+          confettiAnimationId = requestAnimationFrame(renderConfetti);
+        } else {
+          confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        }
+      }
+
+      // ==========================================
+      // VICTORY MODAL & HISTORY MANAGEMENT
+      // ==========================================
+      function showOracleVictory(distro, targetIndex) {
+        audio.playWinChime();
+        launchConfetti(distro.colors[0], distro.colors[1]);
+
+        modalEmblem.innerHTML = generateDistroSvg(distro, 140);
+        modalTitle.textContent = distro.name;
+        modalMeta.textContent = `EST. ${distro.year} · ${distro.family.toUpperCase()} FAMILY`;
+        modalDesc.textContent = distro.description;
+
+        modalHow.innerHTML = `
+          Download the official ISO from their community mirrors, burn to a flash drive using <strong>Balena Etcher</strong> or <strong>Ventoy</strong>, and boot into Live Mode or spin up a local <strong>VirtualBox / KVM instance</strong>.
+        `;
+
+        modalJumpBtn.onclick = () => {
+          resultModal.classList.remove('open');
+          warpToDistro(targetIndex);
+        };
+
+        resultModal.classList.add('open');
+
+        // Save discovery to localStorage history
+        saveDiscovery(distro, targetIndex);
+      }
+
+      modalCloseBtn.addEventListener('click', () => {
+        resultModal.classList.remove('open');
+      });
+
+      resultModal.addEventListener('click', (e) => {
+        if (e.target === resultModal) {
+          resultModal.classList.remove('open');
+        }
+      });
+
+      // LocalStorage Discovery History
+      function getStoredDiscoveries() {
+        try {
+          return JSON.parse(localStorage.getItem('linux_discoveries') || '[]');
+        } catch(e) {
+          return [];
+        }
+      }
+
+      function saveDiscovery(distro, index) {
+        const list = getStoredDiscoveries();
+        const existing = list.find(item => item.name === distro.name);
+        if (!existing) {
+          list.unshift({
+            name: distro.name,
+            family: distro.family,
+            year: distro.year,
+            index: index,
+            color: distro.colors[0],
+            date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+          });
+          // Keep max 12
+          if (list.length > 12) list.pop();
+          localStorage.setItem('linux_discoveries', JSON.stringify(list));
+        }
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const list = getStoredDiscoveries();
+        if (list.length === 0) {
+          historyList.innerHTML = `
+            <div style="grid-column: 1 / -1; color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 1.5rem 0;">
+              No discoveries yet. Spin the Oracle above to record your journey.
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = list.map(item => `
+          <div class="history-card" onclick="warpToDistro(${item.index})" aria-label="Warp to ${item.name}">
+            <div class="history-card-emblem" style="color: ${item.color};">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="${item.color}" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="4" fill="${item.color}"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: #ffffff; font-size: 0.95rem;">${item.name}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: ${item.color}; margin-top: 0.2rem;">${item.family.toUpperCase()} · ${item.year}</div>
+              <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.15rem;">${item.date}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      renderHistory();
+
+      clearHistoryBtn.addEventListener('click', () => {
+        localStorage.removeItem('linux_discoveries');
+        renderHistory();
+        audio.playTick(500);
+      });
+
+      // ==========================================
+      // RANDOM DISCOVERY WARP BUTTON
+      // Floating controller targeting random distro
+      // ==========================================
+      const discoverBtn = document.getElementById('floating-discover-btn');
+      discoverBtn.addEventListener('click', () => {
+        const randomIdx = Math.floor(Math.random() * DISTRO_DATA.length);
+        audio.playWarp();
+
+        // Magnetic button animation
+        if (window.gsap) {
+          gsap.timeline()
+            .to(discoverBtn, { scale: 0.88, duration: 0.1 })
+            .to(discoverBtn, { scale: 1, duration: 0.25, ease: 'back.out(2)' });
+        }
+
+        warpToDistro(randomIdx);
+      });
+
+      // ==========================================
+      // NAVIGATION & SCROLL HELPERS
+      // ==========================================
+      function warpToDistro(index) {
+        const targetEl = document.getElementById(`distro-${index}`);
+        if (targetEl) {
+          audio.playWarp();
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          // Brief luminous highlight pulse
+          const emblem = targetEl.querySelector('.distro-emblem-wrap');
+          if (emblem && window.gsap) {
+            gsap.fromTo(emblem, 
+              { scale: 0.85, filter: 'brightness(2)' },
+              { scale: 1, filter: 'brightness(1)', duration: 0.8, ease: 'expo.out' }
+            );
+          }
+        }
+      }
+
+      function warpToOracleDistro(index) {
+        const oracleEl = document.getElementById('oracle-section');
+        if (oracleEl) {
+          audio.playTick(800);
+          oracleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      function copyDistroCoordinates(name) {
+        const url = window.location.origin + window.location.pathname + '#' + encodeURIComponent(name);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url);
+          audio.playTick(1200);
+          alert(`Coordinates for ${name} copied to clipboard!`);
+        }
+      }
+
+      // Scroll to explore indicator
+      const scrollIndicator = document.getElementById('scroll-to-explore');
+      if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', () => {
+          document.getElementById('intro').scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+
+      // ==========================================
+      // CUSTOM CURSOR INTERPOLATION ENGINE
+      // Desktop-only smooth magnetic reticle
+      // ==========================================
+      const cursorDot = document.getElementById('cursor-dot');
+      const cursorRing = document.getElementById('cursor-ring');
+      let cX = window.innerWidth / 2;
+      let cY = window.innerHeight / 2;
+      let targetCX = cX;
+      let targetCY = cY;
+
+      window.addEventListener('mousemove', (e) => {
+        targetCX = e.clientX;
+        targetCY = e.clientY;
+      });
+
+      function renderCursor() {
+        cX += (targetCX - cX) * 0.18;
+        cY += (targetCY - cY) * 0.18;
+
+        cursorDot.style.left = `${targetCX}px`;
+        cursorDot.style.top = `${targetCY}px`;
+        cursorRing.style.left = `${cX}px`;
+        cursorRing.style.top = `${cY}px`;
+
+        requestAnimationFrame(renderCursor);
+      }
+      requestAnimationFrame(renderCursor);
+
+      // Contextual cursor states
+      document.querySelectorAll('button, a, .filter-pill, .history-card').forEach(el => {
+        el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+        el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+      });
+
+      const wheelContainer = document.querySelector('.wheel-container');
+      if (wheelContainer) {
+        wheelContainer.addEventListener('mouseenter', () => document.body.classList.add('cursor-reticle'));
+        wheelContainer.addEventListener('mouseleave', () => document.body.classList.remove('cursor-reticle'));
+      }
+    </script>
+
+
+  </body>
+</html>

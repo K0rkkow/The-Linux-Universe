@@ -1,0 +1,6 @@
+{
+  "name": "The Linux Universe",
+  "description": "An award-winning interactive cinematic journey through over 120 Linux distributions across six cosmic families with kinetic typography, star constellation map, and the Distro Oracle.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
